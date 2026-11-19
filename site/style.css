@@ -161,3 +161,14 @@ body.hover-edges .cv .elabel.lit { opacity: 1; }
 body.hover-edges .node.kin { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent); }
 @media (max-width: 600px) { #edgesmode { font-size: 12px; padding: 4px 6px; } }
 .cv svg path.dashed { opacity: .5; }
+
+#years { position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%); z-index: 9; display: flex; gap: 2px; align-items: center;
+  background: var(--ctl); border: 1px solid var(--border); border-radius: 8px; padding: 3px; box-shadow: 0 2px 8px var(--shadow); max-width: calc(100vw - 16px); overflow-x: auto; }
+#years[hidden] { display: none; }
+#years span { color: var(--muted); font-size: 13px; padding: 0 6px; }
+#years button { background: none; border: 0; color: var(--text); font: inherit; font-size: 13px; padding: 5px 9px; border-radius: 6px; cursor: pointer; }
+#years button:hover { background: color-mix(in srgb, var(--accent) 15%, transparent); }
+#years button.on { background: var(--accent); color: #fff; }
+#years button[data-y="2017"] { margin-left: 8px; border-left: 1px solid var(--border); border-radius: 0 6px 6px 0; }
+#axes .bottom { bottom: 84px; }
+#legend { bottom: 90px; }

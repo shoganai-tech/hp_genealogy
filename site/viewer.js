@@ -415,8 +415,15 @@
     $('#pick').value = path; document.title = baseName(path) + ' · Роды';
     const isMain = path === MAIN;
     mode = !isMain || focus ? 'people' : ['map', 'people'].includes(mode) ? mode : 'unions'; // посторонний сначала видит рода
-    $('#modes').hidden = !isMain; $('#axes').hidden = !isMain; $('#legend').hidden = !isMain;
-    document.querySelectorAll('#modes a').forEach((a) => a.classList.toggle('on', a.dataset.mode === mode));
+    $('#modes').hidden = !isMain; $('#axes').hidden = !isMain; $('#legend').hidden = !isMain; $('#years').hidden = !isMain;
+    const year = new URLSearchParams(location.hash.split('?')[1] || '').get('year') || '';
+    document.querySelectorAll('#years button').forEach((b) => b.classList.toggle('on', b.dataset.y === year));
+    $('#host').dataset.year = year; // сюда потом подключим «кто жив в этот год»
+    document.querySelectorAll('#modes a').forEach((a) => {
+      a.classList.toggle('on', a.dataset.mode === mode);
+      const y = new URLSearchParams(location.hash.split('?')[1] || '').get('year');
+      a.href = href.canvas(MAIN) + '?mode=' + a.dataset.mode + (y ? '&year=' + y : '');
+    });
     $('#host').dataset.mode = mode;  if (mode === 'map') $('#legend').hidden = true;
     if (mainPath !== path + mode) {
       mainPath = path + mode; main.clear(); main.setStatus('Загрузка…');
@@ -492,6 +499,15 @@
     }
     for (const c of manifest.canvases) $('#pick').add(new Option(baseName(c), c));
     $('#modes').innerHTML = `<a data-mode="map" href="${href.canvas(MAIN)}?mode=map">Карта</a><a data-mode="unions" href="${href.canvas(MAIN)}?mode=unions">Союзы родов</a><a data-mode="people" href="${href.canvas(MAIN)}?mode=people">Люди</a>`;
+    // годы: пока только выбор и адрес; кто жив в этот год — следующая задача
+    const YEARS = ['1991', '1992', '1993', '1994', '1995', '1996', '1997', '1998', '2017'];
+    $('#years').innerHTML = '<span>Год:</span><button data-y="">все</button>' + YEARS.map((y) => `<button data-y="${y}">${y}</button>`).join('');
+    $('#years').onclick = (e) => {
+      const y = e.target.dataset && e.target.dataset.y; if (y === undefined) return;
+      const [p, q = ''] = location.hash.slice(1).split('?'); const sp = new URLSearchParams(q);
+      y ? sp.set('year', y) : sp.delete('year');
+      location.hash = (p || '/c/' + encodeURI(MAIN)) + (sp.toString() ? '?' + sp : '');
+    };
     $('#legend').innerHTML = '<summary>Легенда</summary>' + ['marriage', 'engagement', 'parent', 'ancestor', 'sibling']
       .map((k) => `<div><i style="background:${col(KIND_COLOR[k])}"></i>${KIND_NAME[k]}</div>`).join('') +
       '<p>В «Союзах» в рамках оставлены только те, кто вошёл в род из другого рода (девичья фамилия в скобках), и их супруги. Пунктир ведёт к родне в родном роду.</p>';
