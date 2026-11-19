@@ -129,3 +129,25 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
 .node.plaque .wl { color: var(--text); }
 .elabel.big { font-size: 40px; font-weight: 700; padding: 0 12px; color: var(--text); border-radius: 10px; }
 @media (max-width: 600px) { #axes .ax { font-size: 10px; } #legend { left: 8px; bottom: 30px; } }
+
+.node.plaque.compact { border-radius: 14px; padding: 8px 14px; }
+.faded { opacity: .12 !important; transition: opacity .15s; }
+#ufilter { position: fixed; top: 100px; left: 50%; transform: translateX(-50%); z-index: 9; display: flex; gap: 12px; align-items: center;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 4px 12px; font-size: 13px; white-space: nowrap; }
+#ufilter[hidden], #upanel[hidden] { display: none; }
+#ufilter label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+#ufilter i { width: 16px; height: 4px; border-radius: 2px; display: inline-block; }
+#ufilter span { color: var(--muted); }
+#host[data-mode="unions"] ~ #axes .top { top: 136px; }
+#upanel { position: fixed; right: 30px; top: 140px; z-index: 11; width: min(340px, calc(100vw - 60px)); max-height: calc(100vh - 180px); overflow: auto;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; box-shadow: 0 6px 20px var(--shadow); font-size: 14px; }
+#upanel .uh { display: flex; justify-content: space-between; align-items: center; font-size: 16px; margin-bottom: 8px; }
+#upanel .uh button { background: none; border: 0; color: var(--text); cursor: pointer; font-size: 16px; }
+#upanel .hint { color: var(--muted); font-size: 12px; margin: 10px 0 4px; }
+#upanel ul { list-style: none; padding: 0; margin: 0; }
+#upanel li { padding: 6px 0; border-top: 1px solid var(--border); cursor: pointer; display: flex; flex-direction: column; }
+#upanel li:hover span { color: var(--link); }
+#upanel small { color: var(--muted); }
+#upanel .up { color: var(--c4); } #upanel .down { color: var(--c1); }
+@media (max-width: 600px) { #ufilter { top: 96px; font-size: 12px; gap: 8px; } #upanel { right: 8px; left: 8px; width: auto; top: auto; bottom: 8px; max-height: 45vh; } }
+#upanel .who { color: var(--text); opacity: .8; }
