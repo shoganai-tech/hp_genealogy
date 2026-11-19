@@ -1,0 +1,36 @@
+{
+	"nodes":[
+		{"id":"n0","type":"text","text":"**[[Винсент Крэбб]]**\nКрэббы","x":1550,"y":580,"width":230,"height":90},
+		{"id":"n1","type":"text","text":"**[[Гертруда Крэбб]]**\nКрэббы","x":1170,"y":320,"width":230,"height":90,"color":"1"},
+		{"id":"n2","type":"text","text":"**[[Грэхэм Монтегю]]**\nМонтегю","x":1220,"y":580,"width":230,"height":90,"color":"1"},
+		{"id":"n3","type":"text","text":"**[[Джулия Монтегю]]**\nМонтегю","x":0,"y":320,"width":230,"height":90,"color":"1"},
+		{"id":"n4","type":"text","text":"**[[Доротея Нотт]]**\nНотты","x":560,"y":580,"width":230,"height":90,"color":"1"},
+		{"id":"n5","type":"text","text":"**[[Кантанкерус Нотт]]**\nНотты","x":890,"y":60,"width":230,"height":90,"color":"1"},
+		{"id":"n6","type":"text","text":"**[[Корделия Финч]]**\nСэлвины","x":560,"y":320,"width":230,"height":90,"color":"1"},
+		{"id":"n7","type":"text","text":"**[[Крэбб-старший]]**\nКрэббы","x":1780,"y":320,"width":230,"height":90},
+		{"id":"n8","type":"text","text":"**[[Мистер Финч]]**\nФинчи","x":840,"y":320,"width":230,"height":90,"color":"1"},
+		{"id":"n9","type":"text","text":"**[[Мортимер Монтегю]]**\nМонтегю","x":1450,"y":320,"width":230,"height":90,"color":"1"},
+		{"id":"n10","type":"text","text":"**[[Первенец Нотта]]**\nНотты","x":890,"y":580,"width":230,"height":90,"color":"1"},
+		{"id":"n11","type":"text","text":"**[[Теодор Нотт]]**\nНотты","x":230,"y":580,"width":230,"height":90,"color":"1"},
+		{"id":"n12","type":"text","text":"**[[Теодотус Нотт]]**\nНотты","x":280,"y":320,"width":230,"height":90,"color":"1"},
+		{"id":"legend","type":"text","text":"**Нотты, Монтегю, Крэббы**\n\nкрасный — наше\nжёлтый — сверить\nфиолетовый — дерево Роулинг\nголубой — вики / Pottermore\nбез цвета — канон (книги)\nоранжевая линия — брак / особая связь\n\nСэлвины: Корделия — урождённая Сэлвин\nМонтегю и Крэббы не в «28»","x":-520,"y":0,"width":340,"height":326}
+	],
+	"edges":[
+		{"id":"e0","fromNode":"n7","fromSide":"bottom","toNode":"n0","toSide":"top"},
+		{"id":"e1","fromNode":"n9","fromSide":"bottom","toNode":"n2","toSide":"top"},
+		{"id":"e2","fromNode":"n1","fromSide":"bottom","toNode":"n2","toSide":"top"},
+		{"id":"e3","fromNode":"n12","fromSide":"bottom","toNode":"n4","toSide":"top"},
+		{"id":"e4","fromNode":"n6","fromSide":"bottom","toNode":"n4","toSide":"top"},
+		{"id":"e5","fromNode":"n12","fromSide":"bottom","toNode":"n10","toSide":"top"},
+		{"id":"e6","fromNode":"n6","fromSide":"bottom","toNode":"n10","toSide":"top"},
+		{"id":"e7","fromNode":"n12","fromSide":"bottom","toNode":"n11","toSide":"top"},
+		{"id":"e8","fromNode":"n3","fromSide":"bottom","toNode":"n11","toSide":"top"},
+		{"id":"e9","fromNode":"n5","fromSide":"bottom","toNode":"n12","toSide":"top"},
+		{"id":"e10","fromNode":"n1","fromSide":"right","toNode":"n9","toSide":"left","label":"брак","color":"2"},
+		{"id":"e11","fromNode":"n3","fromSide":"right","toNode":"n12","toSide":"left","label":"брак","color":"2"},
+		{"id":"e12","fromNode":"n6","fromSide":"right","toNode":"n8","toSide":"left","label":"брак","color":"2"},
+		{"id":"e13","fromNode":"n12","fromSide":"right","toNode":"n6","toSide":"left","label":"брак","color":"2"},
+		{"id":"e14","fromNode":"n2","fromSide":"bottom","toNode":"n0","toSide":"bottom","label":"двоюродные братья","color":"2"},
+		{"id":"e15","fromNode":"n11","fromSide":"bottom","toNode":"n2","toSide":"bottom","label":"двоюродные братья","color":"2"}
+	]
+}

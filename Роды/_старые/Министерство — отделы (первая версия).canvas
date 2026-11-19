@@ -1,0 +1,1555 @@
+{
+	"nodes": [
+		{
+			"id": "g3cbf346b5c",
+			"type": "group",
+			"x": 0,
+			"y": 0,
+			"width": 1410,
+			"height": 564,
+			"label": "Уровень 1 · Министр и аппарат"
+		},
+		{
+			"id": "hfa57f56380",
+			"type": "text",
+			"x": 18,
+			"y": 60,
+			"width": 1374,
+			"height": 42,
+			"text": "**Министр магии и вспомогательный персонал**"
+		},
+		{
+			"id": "ccf3d219a51",
+			"type": "text",
+			"x": 18,
+			"y": 150,
+			"width": 330,
+			"height": 104,
+			"text": "**Millicent Bagnold**\nминистр (1980–1990)"
+		},
+		{
+			"id": "c355661935f",
+			"type": "text",
+			"x": 366,
+			"y": 150,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Корнелиус Фадж]]**\nминистр (1990–1996)"
+		},
+		{
+			"id": "cf13d88d54c",
+			"type": "text",
+			"x": 714,
+			"y": 150,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Руфус Скримджер]]**\nминистр (1996–1997); до того глава Аврората"
+		},
+		{
+			"id": "c910a0dd12a",
+			"type": "text",
+			"x": 1062,
+			"y": 150,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Пий Тикнесс]]**\nминистр (1997–1998); под Империусом"
+		},
+		{
+			"id": "ccde9499f8e",
+			"type": "text",
+			"x": 18,
+			"y": 272,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Кингсли Шеклболт]]**\nминистр с 1998"
+		},
+		{
+			"id": "c3c910d13a8",
+			"type": "text",
+			"x": 18,
+			"y": 424,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Долорес Амбридж]]**\nстарший заместитель министра",
+			"color": "4"
+		},
+		{
+			"id": "ce9c4fefb2e",
+			"type": "text",
+			"x": 366,
+			"y": 424,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Перси Уизли]]**\nмладший помощник министра (1995–96)",
+			"color": "1"
+		},
+		{
+			"id": "gae0c554f07",
+			"type": "group",
+			"x": 1470,
+			"y": 0,
+			"width": 1758,
+			"height": 1062,
+			"label": "Министры магии"
+		},
+		{
+			"id": "h7acf4b872a",
+			"type": "text",
+			"x": 1488,
+			"y": 60,
+			"width": 1722,
+			"height": 82,
+			"text": "**Министры магии (Pottermore)**\nХронологический список; в каноне 35 министров"
+		},
+		{
+			"id": "cac449fecbe",
+			"type": "text",
+			"x": 1488,
+			"y": 190,
+			"width": 330,
+			"height": 104,
+			"text": "**Ulick Gamp**\n1707–1718"
+		},
+		{
+			"id": "ca8b8f0a9d2",
+			"type": "text",
+			"x": 1836,
+			"y": 190,
+			"width": 330,
+			"height": 104,
+			"text": "**Damocles Rowle**\n1718–1726"
+		},
+		{
+			"id": "c21a42871e1",
+			"type": "text",
+			"x": 2184,
+			"y": 190,
+			"width": 330,
+			"height": 104,
+			"text": "**Perseus Parkinson**\n1726–1733"
+		},
+		{
+			"id": "c689bd40cdb",
+			"type": "text",
+			"x": 2532,
+			"y": 190,
+			"width": 330,
+			"height": 104,
+			"text": "**Eldritch Diggory**\n1733–1747"
+		},
+		{
+			"id": "c50365ca3d3",
+			"type": "text",
+			"x": 2880,
+			"y": 190,
+			"width": 330,
+			"height": 104,
+			"text": "**Albert Boot**\n1747–1752"
+		},
+		{
+			"id": "c8e6867bb59",
+			"type": "text",
+			"x": 1488,
+			"y": 312,
+			"width": 330,
+			"height": 104,
+			"text": "**Basil Flack**\n1752"
+		},
+		{
+			"id": "c09889d739b",
+			"type": "text",
+			"x": 1836,
+			"y": 312,
+			"width": 330,
+			"height": 104,
+			"text": "**Hesphaestus Gore**\n1752–1770"
+		},
+		{
+			"id": "c6df2df9a2f",
+			"type": "text",
+			"x": 2184,
+			"y": 312,
+			"width": 330,
+			"height": 104,
+			"text": "**Maximilian Crowdy**\n1770–1781"
+		},
+		{
+			"id": "c1a7f28a093",
+			"type": "text",
+			"x": 2532,
+			"y": 312,
+			"width": 330,
+			"height": 104,
+			"text": "**Porteus Knatchbull**\n1781–1789"
+		},
+		{
+			"id": "c066e169dd5",
+			"type": "text",
+			"x": 2880,
+			"y": 312,
+			"width": 330,
+			"height": 104,
+			"text": "**Unctuous Osbert**\n1789–1798"
+		},
+		{
+			"id": "cf3358f973b",
+			"type": "text",
+			"x": 1488,
+			"y": 434,
+			"width": 330,
+			"height": 104,
+			"text": "**Artemisia Lufkin**\n1798–1811"
+		},
+		{
+			"id": "cfc3f69b112",
+			"type": "text",
+			"x": 1836,
+			"y": 434,
+			"width": 330,
+			"height": 104,
+			"text": "**Grogan Stump**\n1811–1819"
+		},
+		{
+			"id": "c93fdeafce5",
+			"type": "text",
+			"x": 2184,
+			"y": 434,
+			"width": 330,
+			"height": 104,
+			"text": "**Josephina Flint**\n1819–1827"
+		},
+		{
+			"id": "ccd99690695",
+			"type": "text",
+			"x": 2532,
+			"y": 434,
+			"width": 330,
+			"height": 104,
+			"text": "**Ottaline Gambol**\n1827–1835"
+		},
+		{
+			"id": "c4bcb444d64",
+			"type": "text",
+			"x": 2880,
+			"y": 434,
+			"width": 330,
+			"height": 104,
+			"text": "**Rodolphus Lestrange**\n1835–1841"
+		},
+		{
+			"id": "c28f6861457",
+			"type": "text",
+			"x": 1488,
+			"y": 556,
+			"width": 330,
+			"height": 104,
+			"text": "**Hortensia Milliphutt**\n1841–1849"
+		},
+		{
+			"id": "cf756f6fb14",
+			"type": "text",
+			"x": 1836,
+			"y": 556,
+			"width": 330,
+			"height": 104,
+			"text": "**Evangeline Orpington**\n1849–1855"
+		},
+		{
+			"id": "c33c8c9a837",
+			"type": "text",
+			"x": 2184,
+			"y": 556,
+			"width": 330,
+			"height": 104,
+			"text": "**Priscilla Dupont**\n1855–1858"
+		},
+		{
+			"id": "c330bed7746",
+			"type": "text",
+			"x": 2532,
+			"y": 556,
+			"width": 330,
+			"height": 104,
+			"text": "**Dugald McPhail**\n1858–1865"
+		},
+		{
+			"id": "c50c5050614",
+			"type": "text",
+			"x": 2880,
+			"y": 556,
+			"width": 330,
+			"height": 104,
+			"text": "**Faris Spavin**\n1865–1903"
+		},
+		{
+			"id": "cd5faf8ed3c",
+			"type": "text",
+			"x": 1488,
+			"y": 678,
+			"width": 330,
+			"height": 104,
+			"text": "**Venusia Crickerly**\n1903–1912"
+		},
+		{
+			"id": "c02c5947b65",
+			"type": "text",
+			"x": 1836,
+			"y": 678,
+			"width": 330,
+			"height": 104,
+			"text": "**Archer Evermonde**\n1912–1923"
+		},
+		{
+			"id": "cffd665f335",
+			"type": "text",
+			"x": 2184,
+			"y": 678,
+			"width": 330,
+			"height": 104,
+			"text": "**Lorcan McLaird**\n1923–1925"
+		},
+		{
+			"id": "cecb7371dad",
+			"type": "text",
+			"x": 2532,
+			"y": 678,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Гектор Фоули|Hector Fawley]]**\n1925–1939",
+			"color": "3"
+		},
+		{
+			"id": "ce428d3af35",
+			"type": "text",
+			"x": 2880,
+			"y": 678,
+			"width": 330,
+			"height": 104,
+			"text": "**Leonard Spencer-Moon**\n1939–1948"
+		},
+		{
+			"id": "c023bcb60e0",
+			"type": "text",
+			"x": 1488,
+			"y": 800,
+			"width": 330,
+			"height": 104,
+			"text": "**Wilhelmina Tuft**\n1948–1959"
+		},
+		{
+			"id": "c517072172f",
+			"type": "text",
+			"x": 1836,
+			"y": 800,
+			"width": 330,
+			"height": 104,
+			"text": "**Ignatius Tuft**\n1959–1962"
+		},
+		{
+			"id": "ce90df5d151",
+			"type": "text",
+			"x": 2184,
+			"y": 800,
+			"width": 330,
+			"height": 104,
+			"text": "**Nobby Leach**\n1962–1968"
+		},
+		{
+			"id": "c4c98fd3846",
+			"type": "text",
+			"x": 2532,
+			"y": 800,
+			"width": 330,
+			"height": 104,
+			"text": "**Eugenia Jenkins**\n1968–1975"
+		},
+		{
+			"id": "cba5a821f2a",
+			"type": "text",
+			"x": 2880,
+			"y": 800,
+			"width": 330,
+			"height": 104,
+			"text": "**Harold Minchum**\n1975–1980"
+		},
+		{
+			"id": "c45aeca5741",
+			"type": "text",
+			"x": 1488,
+			"y": 922,
+			"width": 330,
+			"height": 104,
+			"text": "**Millicent Bagnold**\n1980–1990"
+		},
+		{
+			"id": "c5e9d6dd100",
+			"type": "text",
+			"x": 1836,
+			"y": 922,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Корнелиус Фадж|Cornelius Fudge]]**\n1990–1996"
+		},
+		{
+			"id": "cf51583b0af",
+			"type": "text",
+			"x": 2184,
+			"y": 922,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Руфус Скримджер|Rufus Scrimgeour]]**\n1996–1997"
+		},
+		{
+			"id": "c73eb62e19c",
+			"type": "text",
+			"x": 2532,
+			"y": 922,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Пий Тикнесс|Pius Thicknesse]]**\n1997–1998"
+		},
+		{
+			"id": "cefd9c941df",
+			"type": "text",
+			"x": 2880,
+			"y": 922,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Кингсли Шеклболт|Kingsley Shacklebolt]]**\n1998–"
+		},
+		{
+			"id": "g50d22d74c7",
+			"type": "group",
+			"x": 0,
+			"y": 1142,
+			"width": 2454,
+			"height": 786,
+			"label": "Уровень 2 · Магический правопорядок"
+		},
+		{
+			"id": "h969479bef3",
+			"type": "text",
+			"x": 18,
+			"y": 1202,
+			"width": 2418,
+			"height": 112,
+			"text": "**Отдел магического правопорядка**\nПодразделения: Аврорат · Бюро неправомерного использования магии · Бюро по неправильному использованию маггловских предметов · Отряд магического правопорядка · Служба администрирования Визенгамота · Бюро по обнаружению поддельных защитных заклинаний и предметов (создано 1996)"
+		},
+		{
+			"id": "c7855c9edd5",
+			"type": "text",
+			"x": 18,
+			"y": 1362,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Амелия Боунс]]**\nглава отдела до июля 1996"
+		},
+		{
+			"id": "c0d6091814b",
+			"type": "text",
+			"x": 366,
+			"y": 1362,
+			"width": 330,
+			"height": 104,
+			"text": "**Justus Pilliwickle**\nглава отдела (ок. 1950)"
+		},
+		{
+			"id": "c354518931e",
+			"type": "text",
+			"x": 714,
+			"y": 1362,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Бартемиус Крауч]]**\nглава отдела (ок. 1970–1981)"
+		},
+		{
+			"id": "cb0cc8b2478",
+			"type": "text",
+			"x": 1062,
+			"y": 1362,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Пий Тикнесс]]**\nглава отдела до августа 1997"
+		},
+		{
+			"id": "c8cd3793cdb",
+			"type": "text",
+			"x": 1410,
+			"y": 1362,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Корбан Яксли]]**\nглава при Пожирателях (1997–98)"
+		},
+		{
+			"id": "c80015d7437",
+			"type": "text",
+			"x": 18,
+			"y": 1514,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Руфус Скримджер]]**\nглава Аврората до 1996"
+		},
+		{
+			"id": "c9b382c2f74",
+			"type": "text",
+			"x": 366,
+			"y": 1514,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Артур Уизли]]**\nглава Бюро по маггловским предметам до 1996; затем Бюро поддельных защитных заклинаний",
+			"color": "1"
+		},
+		{
+			"id": "c12dad07d3b",
+			"type": "text",
+			"x": 714,
+			"y": 1514,
+			"width": 330,
+			"height": 104,
+			"text": "**Mafalda Hopkirk**\nБюро неправомерного использования магии"
+		},
+		{
+			"id": "c37a4121025",
+			"type": "text",
+			"x": 1062,
+			"y": 1514,
+			"width": 330,
+			"height": 104,
+			"text": "**Bob Ogden**\nглава Отряда магического правопорядка (1920-е)"
+		},
+		{
+			"id": "c641806b8f6",
+			"type": "text",
+			"x": 1410,
+			"y": 1514,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Минерва Макгонагалл]]**\nработала в отделе до преподавания (Pottermore)",
+			"color": "1"
+		},
+		{
+			"id": "c5d6353392c",
+			"type": "text",
+			"x": 1758,
+			"y": 1514,
+			"width": 330,
+			"height": 104,
+			"text": "**Elphinstone Urquart**\nстарший офицер (1950-е), муж Минервы (Compendium)"
+		},
+		{
+			"id": "cbd710ef364",
+			"type": "text",
+			"x": 2106,
+			"y": 1514,
+			"width": 330,
+			"height": 104,
+			"text": "**Alastor Gumboil**\nзаявки на хит-визардов, комната 919"
+		},
+		{
+			"id": "c2754482b56",
+			"type": "text",
+			"x": 18,
+			"y": 1666,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Аластор Муди]]**\nаврор"
+		},
+		{
+			"id": "cc072e85618",
+			"type": "text",
+			"x": 366,
+			"y": 1666,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Кингсли Шеклболт]]**\nаврор"
+		},
+		{
+			"id": "c213bd4ecea",
+			"type": "text",
+			"x": 714,
+			"y": 1666,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Нимфадора Тонкс]]**\nаврор",
+			"color": "3"
+		},
+		{
+			"id": "c2e8a1c74a5",
+			"type": "text",
+			"x": 1062,
+			"y": 1666,
+			"width": 330,
+			"height": 104,
+			"text": "**John Dawlish**\nаврор"
+		},
+		{
+			"id": "cbe21e342dc",
+			"type": "text",
+			"x": 1410,
+			"y": 1666,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Фрэнк Лонгботтом]]**\nаврор"
+		},
+		{
+			"id": "cd127188cb8",
+			"type": "text",
+			"x": 1758,
+			"y": 1666,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Алиса Лонгботтом]]**\nаврор"
+		},
+		{
+			"id": "c6cf6df4770",
+			"type": "text",
+			"x": 2106,
+			"y": 1666,
+			"width": 330,
+			"height": 104,
+			"text": "**Gawain Robards**\nаврор"
+		},
+		{
+			"id": "cfce543e3d2",
+			"type": "text",
+			"x": 18,
+			"y": 1788,
+			"width": 330,
+			"height": 104,
+			"text": "**Proudfoot**\nаврор (ОФ)"
+		},
+		{
+			"id": "c2bd081e7ff",
+			"type": "text",
+			"x": 366,
+			"y": 1788,
+			"width": 330,
+			"height": 104,
+			"text": "**Savage**\nаврор (ОФ)"
+		},
+		{
+			"id": "c726f50f700",
+			"type": "text",
+			"x": 714,
+			"y": 1788,
+			"width": 330,
+			"height": 104,
+			"text": "**Williamson**\nаврор (ОФ)"
+		},
+		{
+			"id": "c29ee1f2947",
+			"type": "text",
+			"x": 1062,
+			"y": 1788,
+			"width": 330,
+			"height": 104,
+			"text": "**Stebbins**\nаврор (Лексикон)"
+		},
+		{
+			"id": "cdbf2180f58",
+			"type": "text",
+			"x": 1410,
+			"y": 1788,
+			"width": 330,
+			"height": 104,
+			"text": "**Perkins**\nБюро по маггловским предметам"
+		},
+		{
+			"id": "g727759d82f",
+			"type": "group",
+			"x": 0,
+			"y": 2008,
+			"width": 714,
+			"height": 390,
+			"label": "Уровень 3 · Происшествия и катастрофы"
+		},
+		{
+			"id": "h60c08fc0e2",
+			"type": "text",
+			"x": 18,
+			"y": 2068,
+			"width": 678,
+			"height": 142,
+			"text": "**Отдел магических происшествий и катастроф**\nПодразделения: Отряд обращения вспять случайной магии · Штаб обливиаторов · Комитет по выработке правдоподобных объяснений для магглов"
+		},
+		{
+			"id": "c6362b99463",
+			"type": "text",
+			"x": 18,
+			"y": 2258,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Корнелиус Фадж]]**\nмладший министр отдела (до министерства)"
+		},
+		{
+			"id": "ce1f36ea316",
+			"type": "text",
+			"x": 366,
+			"y": 2258,
+			"width": 330,
+			"height": 104,
+			"text": "**Arnie Peasegood**\nобливиатор, Отряд обращения случайной магии"
+		},
+		{
+			"id": "g92dc3bf866",
+			"type": "group",
+			"x": 774,
+			"y": 2008,
+			"width": 1062,
+			"height": 512,
+			"label": "Уровень 4 · Магические существа"
+		},
+		{
+			"id": "hf6438f9307",
+			"type": "text",
+			"x": 792,
+			"y": 2068,
+			"width": 1026,
+			"height": 142,
+			"text": "**Отдел регулирования и контроля магических существ**\nПодразделения: Управление зверей (Комитет по уничтожению опасных тварей, Отряд по поимке оборотней, Реестр оборотней) · Управление существ (Бюро по связям с гоблинами, Службы помощи оборотням) · Управление духов"
+		},
+		{
+			"id": "cf7572e4d48",
+			"type": "text",
+			"x": 792,
+			"y": 2258,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Амос Диггори]]**\nУправление зверей"
+		},
+		{
+			"id": "c8e9f6763e8",
+			"type": "text",
+			"x": 1140,
+			"y": 2258,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Уолден Макнейр]]**\nпалач, Комитет по уничтожению опасных тварей"
+		},
+		{
+			"id": "c82e47ef98c",
+			"type": "text",
+			"x": 1488,
+			"y": 2258,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Ньют Скамандер]]**\nУправление зверей; Бюро по переселению домовых эльфов (Pottermore)",
+			"color": "3"
+		},
+		{
+			"id": "c77618249eb",
+			"type": "text",
+			"x": 792,
+			"y": 2380,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Миссис Скамандер]]**\nпо версии автора; коллега Амоса и Макнейра"
+		},
+		{
+			"id": "c894500fce6",
+			"type": "text",
+			"x": 1140,
+			"y": 2380,
+			"width": 330,
+			"height": 104,
+			"text": "**Cuthbert Mockridge**\nглава Бюро по связям с гоблинами (1994)"
+		},
+		{
+			"id": "cc0460f7ff1",
+			"type": "text",
+			"x": 1488,
+			"y": 2380,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Дирк Кресвелл]]**\nглава Бюро по связям с гоблинами (1996)"
+		},
+		{
+			"id": "gef0deb9d4c",
+			"type": "group",
+			"x": 0,
+			"y": 2600,
+			"width": 1062,
+			"height": 442,
+			"label": "Уровень 5 · Международное сотрудничество"
+		},
+		{
+			"id": "hbbb7495082",
+			"type": "text",
+			"x": 18,
+			"y": 2660,
+			"width": 1026,
+			"height": 42,
+			"text": "**Отдел международного магического сотрудничества**"
+		},
+		{
+			"id": "c2135eeb035",
+			"type": "text",
+			"x": 18,
+			"y": 2750,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Бартемиус Крауч]]**\nглава отдела (1994)"
+		},
+		{
+			"id": "c6b4e021f5e",
+			"type": "text",
+			"x": 366,
+			"y": 2750,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Аделард Сухайль Шафик]]**\nглава отдела — по версии автора"
+		},
+		{
+			"id": "c8472b6b9fa",
+			"type": "text",
+			"x": 714,
+			"y": 2750,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Мистер Слагхорн]]**\nотец Горация Слагхорна — по версии автора"
+		},
+		{
+			"id": "cef459b52c1",
+			"type": "text",
+			"x": 18,
+			"y": 2902,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Перси Уизли]]**\nпомощник главы (до 1995)",
+			"color": "1"
+		},
+		{
+			"id": "g9686adae0b",
+			"type": "group",
+			"x": 1122,
+			"y": 2600,
+			"width": 1062,
+			"height": 360,
+			"label": "Уровень 6 · Магический транспорт"
+		},
+		{
+			"id": "h4cc0c76d70",
+			"type": "text",
+			"x": 1140,
+			"y": 2660,
+			"width": 1026,
+			"height": 112,
+			"text": "**Отдел магического транспорта**\nПодразделения: Центр тестирования по аппарации · Контроль за мётлами · Комиссия по регулированию Флу-сети · Бюро портключей"
+		},
+		{
+			"id": "c2d9c6401d8",
+			"type": "text",
+			"x": 1140,
+			"y": 2820,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Мадам Эджкомб]]**\nФлу-сеть"
+		},
+		{
+			"id": "c4b5925d2b6",
+			"type": "text",
+			"x": 1488,
+			"y": 2820,
+			"width": 330,
+			"height": 104,
+			"text": "**Basil**\nпортключи, ЧМ 1994"
+		},
+		{
+			"id": "cadea455da6",
+			"type": "text",
+			"x": 1836,
+			"y": 2820,
+			"width": 330,
+			"height": 104,
+			"text": "**Wilkie Twycross**\nэкзаменатор по аппарации (1996–97)"
+		},
+		{
+			"id": "g1eb439675d",
+			"type": "group",
+			"x": 2244,
+			"y": 2600,
+			"width": 1062,
+			"height": 442,
+			"label": "Уровень 7 · Игры и спорт"
+		},
+		{
+			"id": "h267d5c6245",
+			"type": "text",
+			"x": 2262,
+			"y": 2660,
+			"width": 1026,
+			"height": 42,
+			"text": "**Отдел магических игр и спорта**"
+		},
+		{
+			"id": "c976cc55d53",
+			"type": "text",
+			"x": 2262,
+			"y": 2750,
+			"width": 330,
+			"height": 104,
+			"text": "**Hamish MacFarlan**\nглава (1957–1968); экс-капитан «Монтроуз Магпайс» (Pottermore)"
+		},
+		{
+			"id": "c9c5ebd1f7a",
+			"type": "text",
+			"x": 2610,
+			"y": 2750,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Людо Бэгмен]]**\nглава (1994–95)"
+		},
+		{
+			"id": "ccea9f92a76",
+			"type": "text",
+			"x": 2262,
+			"y": 2902,
+			"width": 330,
+			"height": 104,
+			"text": "**Bertha Jorkins**\nсотрудница при Бэгмене"
+		},
+		{
+			"id": "gc1de05ef66",
+			"type": "group",
+			"x": 0,
+			"y": 3122,
+			"width": 1062,
+			"height": 696,
+			"label": "Уровень 9 · Тайны"
+		},
+		{
+			"id": "h1319540833",
+			"type": "text",
+			"x": 18,
+			"y": 3182,
+			"width": 1026,
+			"height": 82,
+			"text": "**Отдел тайн (невыразимцы)**\nКомнаты: Мозг · Зал пророчеств · Запертая комната · Планеты · Время"
+		},
+		{
+			"id": "c0584562037",
+			"type": "text",
+			"x": 18,
+			"y": 3312,
+			"width": 330,
+			"height": 104,
+			"text": "**Saul Croaker**\nневыразимец (ОФ)"
+		},
+		{
+			"id": "cb13dfd7627",
+			"type": "text",
+			"x": 366,
+			"y": 3312,
+			"width": 330,
+			"height": 104,
+			"text": "**Broderick Bode**\nневыразимец (ОФ)"
+		},
+		{
+			"id": "c76df0345a2",
+			"type": "text",
+			"x": 714,
+			"y": 3312,
+			"width": 330,
+			"height": 104,
+			"text": "**Augustus Rookwood**\nневыразимец, Пожиратель смерти"
+		},
+		{
+			"id": "c3edd1735b5",
+			"type": "text",
+			"x": 18,
+			"y": 3434,
+			"width": 330,
+			"height": 104,
+			"text": "**Elton Elderberry**\nневыразимец (вики-навбокс, первоисточник не проверен)"
+		},
+		{
+			"id": "ca81aab4af9",
+			"type": "text",
+			"x": 366,
+			"y": 3434,
+			"width": 330,
+			"height": 104,
+			"text": "**Grim Fawley**\nневыразимец (вики-навбокс, не проверен)"
+		},
+		{
+			"id": "cb7ab54c189",
+			"type": "text",
+			"x": 714,
+			"y": 3434,
+			"width": 330,
+			"height": 104,
+			"text": "**Dinah Hecat**\nневыразимец (вики-навбокс, не проверен)"
+		},
+		{
+			"id": "c707274eacc",
+			"type": "text",
+			"x": 18,
+			"y": 3556,
+			"width": 330,
+			"height": 104,
+			"text": "**Olivia Green**\nневыразимец (вики-навбокс, не проверен)"
+		},
+		{
+			"id": "c003dbbe9db",
+			"type": "text",
+			"x": 366,
+			"y": 3556,
+			"width": 330,
+			"height": 104,
+			"text": "**Gareth Greengrass**\nневыразимец (вики-навбокс, не проверен)"
+		},
+		{
+			"id": "cf1438d06f4",
+			"type": "text",
+			"x": 714,
+			"y": 3556,
+			"width": 330,
+			"height": 104,
+			"text": "**Eloise Mintumble**\nневыразимец (вики-навбокс, не проверен)"
+		},
+		{
+			"id": "c976891596c",
+			"type": "text",
+			"x": 18,
+			"y": 3678,
+			"width": 330,
+			"height": 104,
+			"text": "**Levina Monkstanley**\nневыразимец (вики-навбокс, не проверен)"
+		},
+		{
+			"id": "c4d98307aea",
+			"type": "text",
+			"x": 366,
+			"y": 3678,
+			"width": 330,
+			"height": 104,
+			"text": "**Regina Rowle**\nневыразимец (вики-навбокс, не проверен)"
+		},
+		{
+			"id": "cbedb7f74bf",
+			"type": "text",
+			"x": 714,
+			"y": 3678,
+			"width": 330,
+			"height": 104,
+			"text": "**Albert Sallow**\nневыразимец (вики-навбокс, не проверен)"
+		},
+		{
+			"id": "gd6e8c66472",
+			"type": "group",
+			"x": 1122,
+			"y": 3122,
+			"width": 1062,
+			"height": 604,
+			"label": "Уровень 10 · Суды"
+		},
+		{
+			"id": "hdab21f6037",
+			"type": "text",
+			"x": 1140,
+			"y": 3182,
+			"width": 1026,
+			"height": 82,
+			"text": "**Визенгамот**\nЗал суда; председатель — Верховный чародей"
+		},
+		{
+			"id": "cc7536fddeb",
+			"type": "text",
+			"x": 1140,
+			"y": 3312,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Альбус Дамблдор]]**\nВерховный чародей (до 1995)",
+			"color": "1"
+		},
+		{
+			"id": "c5fd1bbcd06",
+			"type": "text",
+			"x": 1140,
+			"y": 3464,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Амелия Боунс]]**\nчлен; глава отдела правопорядка"
+		},
+		{
+			"id": "cff003943c5",
+			"type": "text",
+			"x": 1488,
+			"y": 3464,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Элфиас Додж]]**\nчлен"
+		},
+		{
+			"id": "c7ddbb28192",
+			"type": "text",
+			"x": 1836,
+			"y": 3464,
+			"width": 330,
+			"height": 104,
+			"text": "**Griselda Marchbanks**\nчлен (экзаменатор)"
+		},
+		{
+			"id": "c731bee9e21",
+			"type": "text",
+			"x": 1140,
+			"y": 3586,
+			"width": 330,
+			"height": 104,
+			"text": "**Tiberius Ogden**\nчлен"
+		},
+		{
+			"id": "c9417ba2c2b",
+			"type": "text",
+			"x": 1488,
+			"y": 3586,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Мистер Голдштейн (двоюродный дед Энтони Голдштейн)|Мистер Голдштейн (двоюродный дед Энтони)]]**\nчлен — по версии автора"
+		},
+		{
+			"id": "g99e44455e4",
+			"type": "group",
+			"x": 0,
+			"y": 3898,
+			"width": 714,
+			"height": 390,
+			"label": "Другие отделы"
+		},
+		{
+			"id": "h3962ef4642",
+			"type": "text",
+			"x": 18,
+			"y": 3958,
+			"width": 678,
+			"height": 142,
+			"text": "**Прочие службы**\nОтдел контроля магического оборудования · Отдел магического обслуживания · Бюро по переселению домовых эльфов · Группа по борьбе с гулями"
+		},
+		{
+			"id": "c9e1a2bdc68",
+			"type": "text",
+			"x": 18,
+			"y": 4148,
+			"width": 330,
+			"height": 104,
+			"text": "**Reginald Cattermole**\nОтдел магического обслуживания (ДС)"
+		},
+		{
+			"id": "gbaad08783f",
+			"type": "group",
+			"x": 774,
+			"y": 3898,
+			"width": 1062,
+			"height": 412,
+			"label": "Ведомство не названо"
+		},
+		{
+			"id": "h7498a402dd",
+			"type": "text",
+			"x": 792,
+			"y": 3958,
+			"width": 1026,
+			"height": 42,
+			"text": "**Служащие без указанного отдела**"
+		},
+		{
+			"id": "c7bbe8d3f5c",
+			"type": "text",
+			"x": 792,
+			"y": 4048,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Мистер Блетчли]]**\nсотрудник Министерства"
+		},
+		{
+			"id": "cc06c57c8a1",
+			"type": "text",
+			"x": 1140,
+			"y": 4048,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Орфорд Амбридж]]**\nсотрудник Министерства (Pottermore)"
+		},
+		{
+			"id": "c9e4370f90e",
+			"type": "text",
+			"x": 1488,
+			"y": 4048,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Тиберий Маклагген]]**\n«большая шишка» (ПП, гл. 7)"
+		},
+		{
+			"id": "cf57491732f",
+			"type": "text",
+			"x": 792,
+			"y": 4170,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Мистер Голдштейн (отец Энтони Голдштейн)|Мистер Голдштейн (отец Энтони)]]**\nминистерский служащий — по версии автора"
+		},
+		{
+			"id": "c42986276cf",
+			"type": "text",
+			"x": 1140,
+			"y": 4170,
+			"width": 330,
+			"height": 104,
+			"text": "**[[Лайелл Люпин]]**\nМинистерство (Pottermore: отец Римуса)"
+		}
+	],
+	"edges": [
+		{
+			"id": "fa76a399e88441d1",
+			"fromNode": "hfa57f56380",
+			"fromSide": "bottom",
+			"toNode": "ccf3d219a51",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "37ad4803432e48d9",
+			"fromNode": "hfa57f56380",
+			"fromSide": "bottom",
+			"toNode": "c355661935f",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "b65f179f492043fa",
+			"fromNode": "hfa57f56380",
+			"fromSide": "bottom",
+			"toNode": "cf13d88d54c",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "19af655fbcb442a8",
+			"fromNode": "hfa57f56380",
+			"fromSide": "bottom",
+			"toNode": "c910a0dd12a",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "e7f1af7d3071453d",
+			"fromNode": "hfa57f56380",
+			"fromSide": "bottom",
+			"toNode": "ccde9499f8e",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "907af0f2d8c045ac",
+			"fromNode": "c355661935f",
+			"fromSide": "bottom",
+			"toNode": "c3c910d13a8",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "0bb5f7af79974c1c",
+			"fromNode": "c355661935f",
+			"fromSide": "bottom",
+			"toNode": "ce9c4fefb2e",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "768755025efd4180",
+			"fromNode": "h969479bef3",
+			"fromSide": "bottom",
+			"toNode": "c7855c9edd5",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "9e2494ebf0a34735",
+			"fromNode": "h969479bef3",
+			"fromSide": "bottom",
+			"toNode": "c0d6091814b",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "31312b46fcaa43ce",
+			"fromNode": "h969479bef3",
+			"fromSide": "bottom",
+			"toNode": "c354518931e",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "397636e8b5644279",
+			"fromNode": "h969479bef3",
+			"fromSide": "bottom",
+			"toNode": "cb0cc8b2478",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "9a2d7aa303dd46d0",
+			"fromNode": "h969479bef3",
+			"fromSide": "bottom",
+			"toNode": "c8cd3793cdb",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "4977f20566fe4822",
+			"fromNode": "c7855c9edd5",
+			"fromSide": "bottom",
+			"toNode": "c80015d7437",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "e1b0c776640a4439",
+			"fromNode": "c7855c9edd5",
+			"fromSide": "bottom",
+			"toNode": "c9b382c2f74",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "7a5cd7423ffc4c90",
+			"fromNode": "c7855c9edd5",
+			"fromSide": "bottom",
+			"toNode": "c12dad07d3b",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "38e670e25cd442e3",
+			"fromNode": "c7855c9edd5",
+			"fromSide": "bottom",
+			"toNode": "c37a4121025",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "b7a2f809a76c409c",
+			"fromNode": "c7855c9edd5",
+			"fromSide": "bottom",
+			"toNode": "c641806b8f6",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "57d236b49cfb4a1a",
+			"fromNode": "c7855c9edd5",
+			"fromSide": "bottom",
+			"toNode": "c5d6353392c",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "fa044ccfed3740ee",
+			"fromNode": "c7855c9edd5",
+			"fromSide": "bottom",
+			"toNode": "cbd710ef364",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "f2aff9fc0fc1448f",
+			"fromNode": "c80015d7437",
+			"fromSide": "bottom",
+			"toNode": "c2754482b56",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "d738ec0a9d99495e",
+			"fromNode": "c80015d7437",
+			"fromSide": "bottom",
+			"toNode": "cc072e85618",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "e259852506a2412b",
+			"fromNode": "c80015d7437",
+			"fromSide": "bottom",
+			"toNode": "c213bd4ecea",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "5a58edf700d14401",
+			"fromNode": "c80015d7437",
+			"fromSide": "bottom",
+			"toNode": "c2e8a1c74a5",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "1fc61d22f1d94b6f",
+			"fromNode": "c80015d7437",
+			"fromSide": "bottom",
+			"toNode": "cbe21e342dc",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "ef04ad3fa288461b",
+			"fromNode": "c80015d7437",
+			"fromSide": "bottom",
+			"toNode": "cd127188cb8",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "9ca8014207984959",
+			"fromNode": "c80015d7437",
+			"fromSide": "bottom",
+			"toNode": "c6cf6df4770",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "cd1ca275fca04744",
+			"fromNode": "c80015d7437",
+			"fromSide": "bottom",
+			"toNode": "cfce543e3d2",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "c52c11eab0d643d4",
+			"fromNode": "c80015d7437",
+			"fromSide": "bottom",
+			"toNode": "c2bd081e7ff",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "f53ee1eb508c438d",
+			"fromNode": "c80015d7437",
+			"fromSide": "bottom",
+			"toNode": "c726f50f700",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "6133489c3cdf4dd8",
+			"fromNode": "c80015d7437",
+			"fromSide": "bottom",
+			"toNode": "c29ee1f2947",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "07951c48ebe74914",
+			"fromNode": "c9b382c2f74",
+			"fromSide": "bottom",
+			"toNode": "cdbf2180f58",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "cf489663c90545c8",
+			"fromNode": "hbbb7495082",
+			"fromSide": "bottom",
+			"toNode": "c2135eeb035",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "fb37043be3754d37",
+			"fromNode": "c2135eeb035",
+			"fromSide": "bottom",
+			"toNode": "cef459b52c1",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "73ee8a575a87459d",
+			"fromNode": "hbbb7495082",
+			"fromSide": "bottom",
+			"toNode": "c6b4e021f5e",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "c13e059122bb41ca",
+			"fromNode": "hbbb7495082",
+			"fromSide": "bottom",
+			"toNode": "c8472b6b9fa",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "5179481f01ee45b6",
+			"fromNode": "h267d5c6245",
+			"fromSide": "bottom",
+			"toNode": "c976cc55d53",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "9a19078f889a458e",
+			"fromNode": "h267d5c6245",
+			"fromSide": "bottom",
+			"toNode": "c9c5ebd1f7a",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "865af0486c664dee",
+			"fromNode": "c9c5ebd1f7a",
+			"fromSide": "bottom",
+			"toNode": "ccea9f92a76",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "d3a3ada754b14759",
+			"fromNode": "hdab21f6037",
+			"fromSide": "bottom",
+			"toNode": "cc7536fddeb",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "835b227575ed478c",
+			"fromNode": "cc7536fddeb",
+			"fromSide": "bottom",
+			"toNode": "c5fd1bbcd06",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "17d43e6f0a574041",
+			"fromNode": "cc7536fddeb",
+			"fromSide": "bottom",
+			"toNode": "cff003943c5",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "8efbcd73b2964f33",
+			"fromNode": "cc7536fddeb",
+			"fromSide": "bottom",
+			"toNode": "c7ddbb28192",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "828d646ea8a3406c",
+			"fromNode": "cc7536fddeb",
+			"fromSide": "bottom",
+			"toNode": "c731bee9e21",
+			"toSide": "top",
+			"color": "6"
+		},
+		{
+			"id": "d764260ccb0942b1",
+			"fromNode": "cc7536fddeb",
+			"fromSide": "bottom",
+			"toNode": "c9417ba2c2b",
+			"toSide": "top",
+			"color": "6"
+		}
+	]
+}
