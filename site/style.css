@@ -2,17 +2,17 @@
   --bg: #1e1e1e; --dots: #2e2e2e; --card: #262626; --border: #3f3f3f;
   --text: #dadada; --muted: #999; --accent: #a882ff; --link: #a88bfa;
   --bar: rgba(30,30,30,.92); --ctl: #2b2b2b; --code: #333; --panel: #232323; --gbg: rgba(255,255,255,.02); --shadow: rgba(0,0,0,.4);
-  --c1: #fb464c; --c2: #e9973f; --c3: #e0de71; --c4: #44cf6e; --c5: #53dfdd; --c6: #a882ff;
+  --dimline: #444; --c1: #fb464c; --c2: #e9973f; --c3: #e0de71; --c4: #44cf6e; --c5: #53dfdd; --c6: #a882ff;
 }
 @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
   --bg: #f6f6f4; --dots: #d6d6d2; --card: #ffffff; --border: #c9c9c4; --text: #222; --muted: #6b6b6b;
   --accent: #7c4ddb; --link: #6a3fd1; --bar: rgba(250,250,248,.92); --ctl: #fff; --code: #ececea; --panel: #fbfbfa;
-  --gbg: rgba(0,0,0,.015); --shadow: rgba(0,0,0,.12);
+  --gbg: rgba(0,0,0,.015); --shadow: rgba(0,0,0,.12); --dimline: #d4d4d0;
   --c1: #e93147; --c2: #d97a1e; --c3: #b8a300; --c4: #08a14b; --c5: #0aa3a3; --c6: #7c4ddb; } }
 :root[data-theme="light"] {
   --bg: #f6f6f4; --dots: #d6d6d2; --card: #ffffff; --border: #c9c9c4; --text: #222; --muted: #6b6b6b;
   --accent: #7c4ddb; --link: #6a3fd1; --bar: rgba(250,250,248,.92); --ctl: #fff; --code: #ececea; --panel: #fbfbfa;
-  --gbg: rgba(0,0,0,.015); --shadow: rgba(0,0,0,.12);
+  --gbg: rgba(0,0,0,.015); --shadow: rgba(0,0,0,.12); --dimline: #d4d4d0;
   --c1: #e93147; --c2: #d97a1e; --c3: #b8a300; --c4: #08a14b; --c5: #0aa3a3; --c6: #7c4ddb; }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
@@ -52,7 +52,8 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
 .node.card:hover { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
 .node.card p { margin: 0; }
 .node.card strong { font-weight: 600; }
-.node.ext { border-style: dashed; opacity: .85; }
+.node.dim, .group.dim { filter: grayscale(1); opacity: .28; pointer-events: none; box-shadow: none; }
+.node.dim { cursor: default; }
 .node.hl { box-shadow: 0 0 0 4px var(--accent); border-color: var(--accent); }
 .node.img { padding: 0; background: transparent; box-shadow: none; }
 .node.img img { width: 100%; height: 100%; object-fit: contain; display: block; }

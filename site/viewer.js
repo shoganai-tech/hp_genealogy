@@ -75,27 +75,32 @@
     setStatus(t) { this.status.hidden = !t; this.status.textContent = t || ''; }
     clear() { this.nodesEl.innerHTML = this.groupsEl.innerHTML = this.svg.innerHTML = ''; this.world.querySelectorAll('.elabel').forEach((e) => e.remove()); }
 
-    render({ nodes = [], edges = [] }) {
+    render({ nodes = [], edges = [] }, rel = null) {
       this.clear(); this.setStatus('');
       const byId = new Map(nodes.map((n) => [n.id, n]));
       let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
       for (const n of nodes) {
         x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y); x1 = Math.max(x1, n.x + n.width); y1 = Math.max(y1, n.y + n.height);
         const el = document.createElement('div');
+        el.dataset.id = n.id;
         Object.assign(el.style, { left: n.x + 'px', top: n.y + 'px', width: n.width + 'px', height: n.height + 'px' });
         if (n.color) { el.dataset.c = ''; el.style.setProperty('--nc', col(n.color)); }
+        const dim = rel && !rel.has(n.id);
+        if (dim) el.classList.add('dim');
         if (n.type === 'group') {
           el.className = 'group';
           if (n.label) {
             const l = document.createElement('div'); l.className = 'glabel'; l.textContent = n.label;
             const p = resolve('Рода/' + groupName(n.label)) || null;
-            if (p) { l.classList.add('wl'); l.dataset.link = p; }
+            if (p && !dim) { l.classList.add('wl'); l.dataset.link = p; }
             el.append(l);
           }
           this.groupsEl.append(el); continue;
         }
-        el.className = 'node md' + (n.ext ? ' ext' : '');
-        if (n.type === 'text') {
+        el.className = 'node md' + (dim ? ' dim' : '');
+        if (n.type === 'text' && dim) {
+          el.textContent = (el.innerHTML = renderMd(n.text || ''), el.textContent); // только имя, без ссылок
+        } else if (n.type === 'text') {
           el.innerHTML = renderMd(n.text || '');
           const links = el.querySelectorAll('.wl[data-note]');
           if (links.length) { el.classList.add('card'); el.dataset.link = links[0].dataset.note; }
@@ -132,7 +137,7 @@
         const d = Math.hypot(p2.x - p1.x, p2.y - p1.y);
         const off = Math.max(60, Math.min(d / 2, 250));
         const c1 = push(p1, fs, off), c2 = push(p2, ts, off);
-        const c = col(e.color) || 'var(--muted)';
+        const c = rel && !(rel.has(e.fromNode) && rel.has(e.toNode)) ? 'var(--dimline)' : col(e.color) || 'var(--muted)';
         const path = document.createElementNS(NS, 'path');
         path.setAttribute('d', `M${p1.x},${p1.y} C${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}`);
         path.setAttribute('fill', 'none'); path.style.stroke = c; path.setAttribute('stroke-width', '2.5');
@@ -175,6 +180,14 @@
       const k = Math.min(MAX, Math.max(this.min, Math.min(W / bw, H / bh, 1.2)));
       this.view = { k, x: pad + (W - bw * k) / 2 - (b.x0 - 40) * k, y: pad + (H - bh * k) / 2 - (b.y0 - 60) * k };
       this.apply();
+    }
+    fitTo(ids) {
+      const ns = [...this.nodesEl.children, ...this.groupsEl.children].filter((e) => ids.has(e.dataset.id));
+      if (!ns.length) return this.fit();
+      const save = this.bounds;
+      this.bounds = { x0: Math.min(...ns.map((e) => e.offsetLeft)), y0: Math.min(...ns.map((e) => e.offsetTop)),
+        x1: Math.max(...ns.map((e) => e.offsetLeft + e.offsetWidth)), y1: Math.max(...ns.map((e) => e.offsetTop + e.offsetHeight)) };
+      this.fit(); this.bounds = save;
     }
     focus(link) {
       const el = [...this.nodesEl.querySelectorAll('.node')].find((n) => n.dataset.link === link);
@@ -250,86 +263,29 @@
     const m = n.type === 'text' && /\[\[([^\]|#]+)/.exec(n.text || '');
     return m ? resolve(m[1].trim()) : n.type === 'file' ? resolveFile(n.file) : null;
   }
-  function rodSubgraph(data, rodPath, people) {
+  // какие узлы главного холста относятся к роду: его рамка, его люди, их прямые связи и рамки родов этих связей целиком
+  function rodRelevant(data, rodPath, people) {
     const name = baseName(rodPath);
     const allGroups = data.nodes.filter((n) => n.type === 'group');
     const own = allGroups.filter((g) => groupName(g.label) === name);
     const inside = (n, g) => n !== g && n.x >= g.x && n.y >= g.y && n.x + n.width <= g.x + g.width && n.y + n.height <= g.y + g.height;
-    const ownerOf = (n) => allGroups.filter((g) => inside(n, g)).sort((a, b) => a.width * a.height - b.width * b.height)[0];
-
-    // ядро рода: всё внутри его рамки + люди из заметки рода, где бы они ни стояли
+    const outerOf = (n) => { let g = null; for (const q of allGroups) if (inside(n, q) && (!g || q.width * q.height > g.width * g.height)) g = q; return g; };
     const core = new Set();
     for (const n of data.nodes) {
-      if (own.some((g) => inside(n, g))) core.add(n.id);
+      if (own.some((g) => g === n || inside(n, g))) core.add(n.id);
       else if (n.type !== 'group' && people.has(linkOf(n))) core.add(n.id);
     }
     if (!core.size) return null;
+    const rel = new Set(core);
+    const addGroup = (g) => { rel.add(g.id); for (const n of data.nodes) if (inside(n, g)) rel.add(n.id); };
     const byId = new Map(data.nodes.map((n) => [n.id, n]));
-
-    // соседи по связям → их рода целиком (рамка со всем содержимым), либо одиночная карточка
-    const blocks = new Map(); // key → Set(id)
-    const addBlock = (key, ids) => { if (!blocks.has(key)) blocks.set(key, new Set()); ids.forEach((i) => blocks.get(key).add(i)); };
+    for (const id of core) { const g = outerOf(byId.get(id)); if (g) addGroup(g); } // люди рода в чужих рамках
     for (const e of data.edges) {
-      const [inA, inB] = [core.has(e.fromNode), core.has(e.toNode)];
-      if (inA === inB) continue;
-      const nb = byId.get(inA ? e.toNode : e.fromNode); if (!nb) continue;
-      let g = ownerOf(nb);
-      while (g && ownerOf(g) && !own.includes(ownerOf(g))) g = ownerOf(g); // самая внешняя рамка
-      if (g && !own.includes(g)) addBlock(g.id, [g.id, ...data.nodes.filter((n) => inside(n, g)).map((n) => n.id)]);
-      else addBlock(nb.id, [nb.id]);
+      if (core.has(e.fromNode) === core.has(e.toNode)) continue;
+      const nb = byId.get(core.has(e.fromNode) ? e.toNode : e.fromNode); if (!nb) continue;
+      rel.add(nb.id); const g = outerOf(nb); if (g) addGroup(g);
     }
-    // люди рода, стоящие в чужих рамках (замужние и т.п.), тоже переезжают к роду
-    for (const id of core) {
-      const n = byId.get(id);
-      if (!own.some((g) => inside(n, g)) && n.type !== 'group') addBlock(id, [id]);
-    }
-
-    const clone = (n) => ({ ...n });
-    const innerNodes = data.nodes.filter((n) => own.includes(n) || own.some((g) => inside(n, g))).map(clone);
-    const inner = innerNodes.length ? innerNodes : [...core].map((id) => clone(byId.get(id)));
-    const out = [...inner];
-    const used = new Set(out.map((n) => n.id));
-    const bbox = (ns) => ({ x0: Math.min(...ns.map((n) => n.x)), y0: Math.min(...ns.map((n) => n.y) ) - 50,
-      x1: Math.max(...ns.map((n) => n.x + n.width)), y1: Math.max(...ns.map((n) => n.y + n.height)) });
-    const B = bbox(inner), cx = (B.x0 + B.x1) / 2, cy = (B.y0 + B.y1) / 2, M = 160, GAP = 60;
-    const placed = [B];
-    const hits = (r) => placed.some((q) => r.x0 < q.x1 + GAP && q.x0 < r.x1 + GAP && r.y0 < q.y1 + GAP && q.y0 < r.y1 + GAP);
-
-    const list = [...blocks.entries()].map(([key, ids]) => {
-      const ns = [...ids].filter((i) => !used.has(i)).map((i) => clone(byId.get(i))).filter(Boolean);
-      return { key, ns, r: ns.length && bbox(ns) };
-    }).filter((b) => b.ns.length)
-      .sort((a, b) => Math.atan2((a.r.y0 + a.r.y1) / 2 - cy, (a.r.x0 + a.r.x1) / 2 - cx) - Math.atan2((b.r.y0 + b.r.y1) / 2 - cy, (b.r.x0 + b.r.x1) / 2 - cx));
-    // раскладка: каждый блок уходит на ту сторону от рода, куда он смотрел на большом холсте
-    const sides = { top: [], right: [], bottom: [], left: [] };
-    for (const b of list) {
-      b.ns = b.ns.filter((n) => !used.has(n.id)); if (!b.ns.length) continue;
-      b.ns.forEach((n) => used.add(n.id));
-      b.r = bbox(b.ns);
-      const dx = ((b.r.x0 + b.r.x1) / 2 - cx) / (B.x1 - B.x0 || 1), dy = ((b.r.y0 + b.r.y1) / 2 - cy) / (B.y1 - B.y0 || 1);
-      sides[Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'bottom' : 'top')].push(b);
-    }
-    const put = (b, nx, ny) => {
-      const ox = nx - b.r.x0, oy = ny - b.r.y0;
-      for (const n of b.ns) { n.x += ox; n.y += oy; if (n.type !== 'group' && !core.has(n.id)) n.ext = true; out.push(n); }
-    };
-    const W = (b) => b.r.x1 - b.r.x0, Hh = (b) => b.r.y1 - b.r.y0;
-    // лево/право — колонками, сверху вниз по исходному y
-    for (const side of ['left', 'right']) {
-      const col = sides[side].sort((a, b) => a.r.y0 - b.r.y0);
-      const total = col.reduce((s, b) => s + Hh(b) + GAP, -GAP);
-      let y = cy - total / 2;
-      for (const b of col) { put(b, side === 'left' ? B.x0 - M - W(b) : B.x1 + M, y); y += Hh(b) + GAP; }
-    }
-    // верх/низ — рядами, слева направо по исходному x
-    for (const side of ['top', 'bottom']) {
-      const row = sides[side].sort((a, b) => a.r.x0 - b.r.x0);
-      const total = row.reduce((s, b) => s + W(b) + GAP, -GAP);
-      let x = cx - total / 2;
-      for (const b of row) { put(b, x, side === 'top' ? B.y0 - M - Hh(b) : B.y1 + M); x += W(b) + GAP; }
-    }
-    const ids = new Set(out.map((n) => n.id));
-    return { nodes: out, edges: data.edges.filter((e) => ids.has(e.fromNode) && ids.has(e.toNode)) };
+    return { rel, core };
   }
 
   // ---------- UI ----------
@@ -391,14 +347,16 @@
     if (isRod && mainData) {
       const sect = (/^## Люди[^\n]*\n([\s\S]*?)(?=^## |(?![\s\S]))/m.exec(raw) || [, ''])[1];
       const people = new Set([...sect.matchAll(/\[\[([^\]|#]+)/g)].map((m) => resolve(m[1].trim())).filter(Boolean));
-      const sub = rodSubgraph(mainData, path, people);
-      if (sub) {
+      const r = rodRelevant(mainData, path, people);
+      if (r) {
         const sec = document.createElement('section');
         sec.innerHTML = '<h2>Связи рода</h2><div class="mini"><div class="mini-ctl"><button data-a="in">+</button><button data-a="out">−</button><button data-a="fit">⤢</button></div><div class="mini-cv" style="height:100%"></div></div>';
         $('h1', art).after(sec);
         const cv = new CanvasView($('.mini-cv', sec), null, 0.03);
-        cv.render(sub); requestAnimationFrame(() => cv.fit());
-        $('.mini-ctl', sec).onclick = (e) => { const a = e.target.dataset.a; a === 'in' ? cv.zoomBy(1.25) : a === 'out' ? cv.zoomBy(0.8) : a === 'fit' && cv.fit(); };
+        cv.render(mainData, r.rel);
+        const fitRel = () => cv.fitTo(r.rel);
+        requestAnimationFrame(fitRel);
+        $('.mini-ctl', sec).onclick = (e) => { const a = e.target.dataset.a; a === 'in' ? cv.zoomBy(1.25) : a === 'out' ? cv.zoomBy(0.8) : a === 'fit' && fitRel(); };
       }
     }
   }
