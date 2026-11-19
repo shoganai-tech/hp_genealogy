@@ -105,3 +105,27 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
   .article { padding: 14px 14px 60px; }
   .article h1 { font-size: 1.6em; }
 }
+
+/* ---------- режимы, оси, легенда ---------- */
+#modes { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); z-index: 9; display: flex;
+  background: var(--ctl); border: 1px solid var(--border); border-radius: 8px; padding: 3px; box-shadow: 0 2px 8px var(--shadow); }
+#modes[hidden], #axes[hidden], #legend[hidden] { display: none; }
+#modes a { padding: 5px 14px; border-radius: 6px; color: var(--muted); text-decoration: none; font-size: 14px; white-space: nowrap; }
+#modes a.on { background: var(--accent); color: #fff; }
+#axes .ax { position: fixed; z-index: 8; font-size: 12px; color: var(--muted); pointer-events: none;
+  background: color-mix(in srgb, var(--bg) 80%, transparent); padding: 2px 8px; border-radius: 4px; }
+#axes .top { top: 100px; left: 50%; transform: translateX(-50%); }
+#axes .bottom { bottom: 10px; left: 50%; transform: translateX(-50%); }
+#axes .left { left: 4px; top: 50%; transform: translateY(-50%) rotate(180deg); writing-mode: vertical-rl; }
+#axes .right { right: 4px; top: 50%; transform: translateY(-50%); writing-mode: vertical-rl; }
+#legend { position: fixed; left: 34px; bottom: 40px; z-index: 9; background: var(--panel); border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 12px; font-size: 13px; max-width: 260px; box-shadow: 0 2px 8px var(--shadow); }
+#legend summary { cursor: pointer; font-weight: 600; }
+#legend div { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+#legend i { width: 22px; height: 4px; border-radius: 2px; display: inline-block; }
+#legend p { color: var(--muted); font-size: 12px; margin: 6px 0 2px; }
+.node.plaque { display: flex; align-items: center; justify-content: center; text-align: center; font-weight: 700;
+  line-height: 1.1; border-width: 4px; border-radius: 18px; padding: 20px; }
+.node.plaque .wl { color: var(--text); }
+.elabel.big { font-size: 40px; font-weight: 700; padding: 0 12px; color: var(--text); border-radius: 10px; }
+@media (max-width: 600px) { #axes .ax { font-size: 10px; } #legend { left: 8px; bottom: 30px; } }

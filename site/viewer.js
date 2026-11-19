@@ -97,7 +97,8 @@
           }
           this.groupsEl.append(el); continue;
         }
-        el.className = 'node md' + (dim ? ' dim' : '');
+        el.className = 'node md' + (dim ? ' dim' : '') + (n.plaque ? ' plaque' : '');
+        if (n.plaque) el.style.fontSize = Math.max(40, Math.min(140, Math.min(n.width / 7, n.height / 2.5))) + 'px';
         if (n.type === 'text' && dim) {
           el.textContent = (el.innerHTML = renderMd(n.text || ''), el.textContent); // только имя, без ссылок
         } else if (n.type === 'text') {
@@ -135,19 +136,20 @@
         }
         const p1 = sidePt(a, fs), p2 = sidePt(b, ts);
         const d = Math.hypot(p2.x - p1.x, p2.y - p1.y);
-        const off = Math.max(60, Math.min(d / 2, 250));
+        const off = e.weight ? Math.min(d / 3, 600) : Math.max(60, Math.min(d / 2, 250));
         const c1 = push(p1, fs, off), c2 = push(p2, ts, off);
         const c = rel && !(rel.has(e.fromNode) && rel.has(e.toNode)) ? 'var(--dimline)' : col(e.color) || 'var(--muted)';
         const path = document.createElementNS(NS, 'path');
         path.setAttribute('d', `M${p1.x},${p1.y} C${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}`);
-        path.setAttribute('fill', 'none'); path.style.stroke = c; path.setAttribute('stroke-width', '2.5');
+        path.setAttribute('fill', 'none'); path.style.stroke = c; path.setAttribute('stroke-width', e.weight ? String(Math.min(40, 4 + e.weight * 4)) : '2.5');
+        if (e.title) { const t = document.createElementNS(NS, 'title'); t.textContent = e.title; path.append(t); path.style.pointerEvents = 'stroke'; }
         path.setAttribute('stroke-linecap', 'round');
         if ((e.toEnd || 'arrow') === 'arrow') path.setAttribute('marker-end', `url(#${marker(c)})`);
         if ((e.fromEnd || 'none') === 'arrow') path.setAttribute('marker-start', `url(#${marker(c)})`);
         this.svg.append(path);
         if (e.label) {
           const t = 0.5, mt = 0.5, f = (a, b, c, d) => mt ** 3 * a + 3 * mt * mt * t * b + 3 * mt * t * t * c + t ** 3 * d;
-          const l = document.createElement('div'); l.className = 'elabel'; l.textContent = e.label;
+          const l = document.createElement('div'); l.className = 'elabel' + (e.weight ? ' big' : ''); l.textContent = e.label;
           l.style.left = f(p1.x, c1.x, c2.x, p2.x) + 'px'; l.style.top = f(p1.y, c1.y, c2.y, p2.y) + 'px';
           this.world.append(l);
         }
@@ -288,6 +290,43 @@
     return { rel, core };
   }
 
+  // ---------- вид «Союзы»: род = одна плашка, связи между родами слиты в одну линию ----------
+  const KIND = { '4': 'parent', '3': 'ancestor', '5': 'sibling', '2': 'marriage' };
+  const kindOf = (c) => KIND[c] || (c && (c === '6' || /^#[cd]/i.test(c)) ? 'engagement' : 'other');
+  const KIND_ORDER = ['marriage', 'engagement', 'parent', 'ancestor', 'sibling', 'other'];
+  const KIND_COLOR = { marriage: '2', engagement: '#d350dc', parent: '4', ancestor: '3', sibling: '5', other: null };
+  const KIND_NAME = { marriage: 'брак', engagement: 'помолвка', parent: 'родитель → ребёнок', ancestor: 'предок → потомок', sibling: 'братья и сёстры', other: 'другое' };
+  function unionsView(data) {
+    const groups = data.nodes.filter((n) => n.type === 'group');
+    const inside = (n, g) => n !== g && n.x >= g.x && n.y >= g.y && n.x + n.width <= g.x + g.width && n.y + n.height <= g.y + g.height;
+    const top = groups.filter((g) => !groups.some((q) => inside(g, q)));
+    const ownerOf = new Map();
+    for (const n of data.nodes) { const g = top.find((q) => q === n || inside(n, q)); if (g) ownerOf.set(n.id, g.id); }
+    const pairs = new Map();
+    for (const e of data.edges) {
+      const a = ownerOf.get(e.fromNode) || e.fromNode, b = ownerOf.get(e.toNode) || e.toNode;
+      if (a === b) continue;
+      const key = a < b ? a + '|' + b : b + '|' + a;
+      if (!pairs.has(key)) pairs.set(key, { a, b, n: 0, kinds: {} });
+      const p = pairs.get(key); p.n++; const k = kindOf(e.color); p.kinds[k] = (p.kinds[k] || 0) + 1;
+    }
+    const used = new Set([...pairs.values()].flatMap((p) => [p.a, p.b]));
+    const nodes = [];
+    for (const g of top) {
+      const name = groupName(g.label), rod = resolve('Рода/' + name);
+      nodes.push({ id: g.id, type: 'text', plaque: true, x: g.x, y: g.y, width: g.width, height: g.height, color: g.color,
+        text: rod ? `[[${rod.replace(/\.md$/, '')}|${g.label}]]` : g.label || '' });
+    }
+    // одиночные карточки вне рамок, у которых есть связи с родами, и легенда/пояснения — как есть
+    for (const n of data.nodes) if (!ownerOf.has(n.id) && n.type !== 'group' && (used.has(n.id) || (n.text || '').length > 150)) nodes.push(n);
+    const edges = [...pairs.values()].map((p, i) => {
+      const k = KIND_ORDER.find((x) => p.kinds[x]);
+      return { id: 'u' + i, fromNode: p.a, toNode: p.b, color: KIND_COLOR[k], toEnd: 'none', weight: p.n,
+        label: p.n > 1 ? String(p.n) : '', title: Object.entries(p.kinds).map(([x, c]) => `${KIND_NAME[x]}: ${c}`).join(', ') };
+    });
+    return { nodes, edges };
+  }
+
   // ---------- UI ----------
   const host = $('#host'), page = $('#page');
   const main = new CanvasView(host, (k) => ($('#zoom').textContent = Math.round(k * 100) + '%'));
@@ -304,15 +343,20 @@
   };
   window.addEventListener('resize', () => main.apply());
 
-  async function showCanvas(path, focus) {
+  async function showCanvas(path, focus, mode) {
     page.hidden = true; host.hidden = false; $('#cvctl').hidden = false;
     $('#pick').value = path; document.title = baseName(path) + ' · Роды';
-    if (mainPath !== path) {
-      mainPath = path; main.clear(); main.setStatus('Загрузка…');
+    const isMain = path === MAIN;
+    mode = isMain && !focus && mode !== 'people' ? 'unions' : 'people'; // посторонний сначала видит рода
+    $('#modes').hidden = !isMain; $('#axes').hidden = !isMain; $('#legend').hidden = !isMain;
+    document.querySelectorAll('#modes a').forEach((a) => a.classList.toggle('on', a.dataset.mode === mode));
+    $('#host').dataset.mode = mode;
+    if (mainPath !== path + mode) {
+      mainPath = path + mode; main.clear(); main.setStatus('Загрузка…');
       let data;
       try { data = await getJSON(path); } catch (e) { main.setStatus('Не удалось загрузить ' + path); return; }
-      if (mainPath !== path) return;
-      main.render(data);
+      if (mainPath !== path + mode) return;
+      main.render(mode === 'unions' ? unionsView(data) : data);
       if (!focus) main.fit();
     }
     if (focus && !main.focus(focus)) main.fit();
@@ -367,7 +411,7 @@
     const m = /^\/(n|c)\/(.+)$/.exec(p);
     if (m) {
       const path = decodeURIComponent(m[2]);
-      return m[1] === 'n' ? showNote(path) : showCanvas(path, focus);
+      return m[1] === 'n' ? showNote(path) : showCanvas(path, focus, new URLSearchParams(q).get('mode'));
     }
     showCanvas(MAIN);
   }
@@ -379,6 +423,10 @@
       if (f.endsWith('.md')) { const b = baseName(f); if (!byName.has(b) || byName.get(b).startsWith('_старые/')) byName.set(b, f); }
     }
     for (const c of manifest.canvases) $('#pick').add(new Option(baseName(c), c));
+    $('#modes').innerHTML = `<a data-mode="unions" href="${href.canvas(MAIN)}?mode=unions">Союзы родов</a><a data-mode="people" href="${href.canvas(MAIN)}?mode=people">Люди</a>`;
+    $('#legend').innerHTML = '<summary>Легенда</summary>' + ['marriage', 'engagement', 'parent', 'ancestor', 'sibling']
+      .map((k) => `<div><i style="background:${col(KIND_COLOR[k])}"></i>${KIND_NAME[k]}</div>`).join('') +
+      '<p>В «Союзах»: толщина и число — сколько связей между родами, цвет — главный тип (наведи на линию, чтобы увидеть все).</p>';
     const legacy = new URLSearchParams(location.search).get('c'); // старые ссылки ?c=
     if (legacy) history.replaceState(null, '', location.pathname + href.canvas(legacy));
     window.addEventListener('hashchange', route);
