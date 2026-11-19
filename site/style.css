@@ -151,3 +151,13 @@ html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
 #upanel .up { color: var(--c4); } #upanel .down { color: var(--c1); }
 @media (max-width: 600px) { #ufilter { top: 96px; font-size: 12px; gap: 8px; } #upanel { right: 8px; left: 8px; width: auto; top: auto; bottom: 8px; max-height: 45vh; } }
 #upanel .who { color: var(--text); opacity: .8; }
+
+/* стрелки по наведению */
+#edgesmode { margin-left: auto; white-space: nowrap; }
+#edgesmode + #theme { margin-left: 0; }
+body.hover-edges .cv svg path[data-a], body.hover-edges .cv .elabel { opacity: 0; transition: opacity .12s; }
+body.hover-edges .cv svg path[data-a].lit { opacity: 1 !important; }
+body.hover-edges .cv .elabel.lit { opacity: 1; }
+body.hover-edges .node.kin { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent); }
+@media (max-width: 600px) { #edgesmode { font-size: 12px; padding: 4px 6px; } }
+.cv svg path.dashed { opacity: .5; }

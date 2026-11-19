@@ -146,13 +146,14 @@
         path.setAttribute('fill', 'none'); path.style.stroke = c; path.setAttribute('stroke-width', e.weight ? String(Math.min(36, 6 + e.weight * 5)) : '2.5');
         if (e.title) { const t = document.createElementNS(NS, 'title'); t.textContent = e.title; path.append(t); path.style.pointerEvents = 'stroke'; }
         path.setAttribute('stroke-linecap', 'round');
-        if (e.dashed) { path.setAttribute('stroke-dasharray', '14 10'); path.style.opacity = '.5'; }
+        if (e.dashed) { path.setAttribute('stroke-dasharray', '14 10'); path.classList.add('dashed'); }
         if ((e.toEnd || 'arrow') === 'arrow') path.setAttribute('marker-end', `url(#${marker(c)})`);
         if ((e.fromEnd || 'none') === 'arrow') path.setAttribute('marker-start', `url(#${marker(c)})`);
         this.svg.append(path);
         if (e.label) {
           const t = 0.5, mt = 0.5, f = (a, b, c, d) => mt ** 3 * a + 3 * mt * mt * t * b + 3 * mt * t * t * c + t ** 3 * d;
           const l = document.createElement('div'); l.className = 'elabel' + (e.weight ? ' big' : ''); l.textContent = e.label;
+          l.dataset.a = e.fromNode; l.dataset.b = e.toNode;
           l.style.left = f(p1.x, c1.x, c2.x, p2.x) + 'px'; l.style.top = f(p1.y, c1.y, c2.y, p2.y) + 'px';
           this.world.append(l);
         }
@@ -250,8 +251,27 @@
         if (!ptrs.size) { vp.classList.remove('drag'); last = downAt = null; setTimeout(() => (this.moved = false), 0); }
       };
       window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
+      // режим «стрелки по наведению»: показываем связи только у карточки под курсором (на тач-экране — по первому тапу)
+      const lightUp = (id) => {
+        if (this.lit === id) return; this.lit = id;
+        const ends = new Set(id ? [id] : []);
+        for (const p of this.world.querySelectorAll('[data-a]')) {
+          const on = !!id && (p.dataset.a === id || p.dataset.b === id);
+          p.classList.toggle('lit', on); if (on) { ends.add(p.dataset.a); ends.add(p.dataset.b); }
+        }
+        for (const n of this.nodesEl.children) n.classList.toggle('kin', !!id && ends.has(n.dataset.id) && n.dataset.id !== id);
+      };
+      vp.addEventListener('pointerover', (e) => {
+        if (e.pointerType !== 'mouse' || !document.body.classList.contains('hover-edges')) return;
+        const n = e.target.closest('.node'); lightUp(n ? n.dataset.id : null);
+      });
+      vp.addEventListener('pointerleave', () => lightUp(null));
       vp.addEventListener('click', (e) => {
         if (this.moved) { e.preventDefault(); e.stopPropagation(); return; }
+        if (document.body.classList.contains('hover-edges') && !matchMedia('(hover: hover)').matches) {
+          const n = e.target.closest('.node'), id = n ? n.dataset.id : null;
+          if (id !== this.lit) { lightUp(id); e.preventDefault(); e.stopPropagation(); return; } // второй тап — открыть
+        }
         if (this.onPick) { const n = e.target.closest('.node'); if (this.onPick(n && n.dataset.id, e)) { e.preventDefault(); e.stopPropagation(); return; } }
         if (e.target.closest('a')) return; // обычная ссылка внутри карточки
         const t = e.target.closest('[data-link]');
@@ -347,14 +367,17 @@
         if (k === 'marriage' || k === 'engagement' || (og && og !== g)) { keep.add(o); keepEdge.add(e.id); } // супруг(а) и родня из другого рода
       }
     }
+    for (const id of [...keep]) for (const [o, e] of adj.get(id) || []) { // родители и дети внутри рода — чтобы было видно, кто чей
+      const k = kindOf(e.color); if ((k === 'parent' || k === 'ancestor') && ownerOf.get(o) === ownerOf.get(id)) keep.add(o);
+    }
     for (const e of data.edges) { // браки и помолвки, прямо проведённые между родами
       const k = kindOf(e.color), ga = ownerOf.get(e.fromNode), gb = ownerOf.get(e.toNode);
       if ((k === 'marriage' || k === 'engagement') && ga !== gb) { keep.add(e.fromNode); keep.add(e.toNode); keepEdge.add(e.id); }
     }
     return {
       nodes: data.nodes.filter((n) => n.type === 'group' || keep.has(n.id)),
-      edges: data.edges.filter((e) => keepEdge.has(e.id) || (keep.has(e.fromNode) && keep.has(e.toNode) && ['marriage', 'engagement'].includes(kindOf(e.color))))
-        .map((e) => (['marriage', 'engagement'].includes(kindOf(e.color)) ? e : { ...e, dashed: true })), // откуда пришёл — пунктиром
+      edges: data.edges.filter((e) => keepEdge.has(e.id) || (keep.has(e.fromNode) && keep.has(e.toNode)))
+        .map((e) => (keepEdge.has(e.id) && ownerOf.get(e.fromNode) !== ownerOf.get(e.toNode) && !['marriage', 'engagement'].includes(kindOf(e.color)) ? { ...e, dashed: true } : e)), // откуда пришёл — пунктиром
     };
   }
 
@@ -369,6 +392,13 @@
   $('#zin').onclick = () => main.zoomBy(1.25);
   $('#zout').onclick = () => main.zoomBy(1 / 1.25);
   $('#pick').onchange = (e) => (location.hash = href.canvas(e.target.value));
+  const setEdges = (h) => {
+    document.body.classList.toggle('hover-edges', h);
+    $('#edgesmode').textContent = h ? 'Стрелки: по наведению' : 'Стрелки: все';
+    try { localStorage.setItem('edges', h ? 'hover' : 'all'); } catch {}
+  };
+  $('#edgesmode').onclick = () => setEdges(!document.body.classList.contains('hover-edges'));
+  try { setEdges(localStorage.getItem('edges') === 'hover'); } catch { setEdges(false); }
   $('#theme').onclick = () => {
     const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
     const t = cur === 'light' ? 'dark' : 'light';
