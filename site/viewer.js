@@ -146,6 +146,7 @@
         path.setAttribute('fill', 'none'); path.style.stroke = c; path.setAttribute('stroke-width', e.weight ? String(Math.min(36, 6 + e.weight * 5)) : '2.5');
         if (e.title) { const t = document.createElementNS(NS, 'title'); t.textContent = e.title; path.append(t); path.style.pointerEvents = 'stroke'; }
         path.setAttribute('stroke-linecap', 'round');
+        if (e.dashed) { path.setAttribute('stroke-dasharray', '14 10'); path.style.opacity = '.5'; }
         if ((e.toEnd || 'arrow') === 'arrow') path.setAttribute('marker-end', `url(#${marker(c)})`);
         if ((e.fromEnd || 'none') === 'arrow') path.setAttribute('marker-start', `url(#${marker(c)})`);
         this.svg.append(path);
@@ -325,42 +326,36 @@
     return { top, ownerOf, plaque };
   }
 
-  // «Союзы»: рода на тех же местах, что на «Карте», но плашки компактные, линии прямые, типы связей фильтруются
-  function unionsView(data, kinds) {
-    const { top, ownerOf, plaque } = rodStructure(data);
-    const pairs = new Map();
-    for (const e of data.edges) {
-      const k = kindOf(e.color); if (!kinds.has(k)) continue;
-      const a = ownerOf.get(e.fromNode) || e.fromNode, b = ownerOf.get(e.toNode) || e.toNode;
-      if (a === b) continue;
-      const key = a < b ? a + '|' + b : b + '|' + a;
-      if (!pairs.has(key)) pairs.set(key, { a, b, n: 0, kinds: {} });
-      const p = pairs.get(key); p.n++; p.kinds[k] = (p.kinds[k] || 0) + 1;
+  // «Союзы»: холст как есть, но в рамках остаются только люди, через которых идёт союз родов:
+  // вошедший в род («Ирма (Крэбб)»), его супруг(а) и родня в родном роду; связи — только между ними
+  function unionsView(data) {
+    const { top, ownerOf } = rodStructure(data);
+    const byName = top.map((g) => [groupName(g.label), g.id]);
+    const rodOfSurname = (sur) => (byName.find(([nm]) => nm.startsWith(sur.slice(0, Math.max(4, sur.length - 1))) || sur.startsWith(nm.slice(0, -1))) || [])[1];
+    const keep = new Set(), keepEdge = new Set();
+    const adj = new Map();
+    for (const e of data.edges) for (const [x, y] of [[e.fromNode, e.toNode], [e.toNode, e.fromNode]]) {
+      if (!adj.has(x)) adj.set(x, []); adj.get(x).push([y, e]);
     }
-    // на холсте вошедший в род человек стоит в рамке нового рода, а прежний виден по фамилии в скобках: «Ирма (Крэбб)»
-    if (kinds.has('marriage')) {
-      const byName = top.map((g) => [groupName(g.label), g.id]);
-      for (const n of data.nodes) {
-        const g = n.type === 'text' && ownerOf.get(n.id); if (!g) continue;
-        for (const [, sur] of (n.text || '').matchAll(/\(([А-ЯЁ][а-яё-]+(?: [А-ЯЁ][а-яё-]+)?)\)/g)) {
-          const r = byName.find(([nm]) => nm.startsWith(sur.slice(0, Math.max(4, sur.length - 1))) || sur.startsWith(nm.slice(0, -1)));
-          if (!r || r[1] === g) continue;
-          const [a, b] = [g, r[1]], key = a < b ? a + '|' + b : b + '|' + a;
-          if (!pairs.has(key)) pairs.set(key, { a, b, n: 0, kinds: {} });
-          const p = pairs.get(key); p.n++; p.kinds.marriage = (p.kinds.marriage || 0) + 1;
-          (p.who = p.who || []).push(n.text.replace(/\*|\[\[[^|\]]*\||\]\]|\[\[/g, '').split('\n')[0].trim());
-        }
+    for (const n of data.nodes) {
+      const g = n.type === 'text' && ownerOf.get(n.id); if (!g) continue;
+      const from = [...(n.text || '').matchAll(/\(([А-ЯЁ][а-яё-]+(?: [А-ЯЁ][а-яё-]+)?)\)/g)].map((m) => rodOfSurname(m[1])).filter((r) => r && r !== g);
+      if (!from.length) continue;
+      keep.add(n.id);
+      for (const [o, e] of adj.get(n.id) || []) {
+        const k = kindOf(e.color), og = ownerOf.get(o);
+        if (k === 'marriage' || k === 'engagement' || (og && og !== g)) { keep.add(o); keepEdge.add(e.id); } // супруг(а) и родня из другого рода
       }
     }
-    const used = new Set([...pairs.values()].flatMap((p) => [p.a, p.b]));
-    const nodes = top.map((g) => plaque(g, true));
-    for (const n of data.nodes) if (!ownerOf.has(n.id) && n.type !== 'group' && used.has(n.id)) nodes.push(n);
-    const edges = [...pairs.values()].map((p, i) => {
-      const k = KIND_ORDER.find((x) => p.kinds[x]);
-      return { id: 'u' + i, fromNode: p.a, toNode: p.b, color: KIND_COLOR[k], toEnd: 'none', weight: p.n, straight: true,
-        label: p.n > 1 ? String(p.n) : '', title: Object.entries(p.kinds).map(([x, c]) => `${KIND_NAME[x]}: ${c}`).join(', ') + (p.who ? '\n' + p.who.join('\n') : '') };
-    });
-    return { nodes, edges, pairs: [...pairs.values()] };
+    for (const e of data.edges) { // браки и помолвки, прямо проведённые между родами
+      const k = kindOf(e.color), ga = ownerOf.get(e.fromNode), gb = ownerOf.get(e.toNode);
+      if ((k === 'marriage' || k === 'engagement') && ga !== gb) { keep.add(e.fromNode); keep.add(e.toNode); keepEdge.add(e.id); }
+    }
+    return {
+      nodes: data.nodes.filter((n) => n.type === 'group' || keep.has(n.id)),
+      edges: data.edges.filter((e) => keepEdge.has(e.id) || (keep.has(e.fromNode) && keep.has(e.toNode) && ['marriage', 'engagement'].includes(kindOf(e.color))))
+        .map((e) => (['marriage', 'engagement'].includes(kindOf(e.color)) ? e : { ...e, dashed: true })), // откуда пришёл — пунктиром
+    };
   }
 
   // «Карта»: только рамки родов на своих местах, без связей — чистое положение по двум осям
@@ -382,43 +377,8 @@
   };
   window.addEventListener('resize', () => main.apply());
 
-  // ---------- «Союзы»: фильтр и фокус ----------
-  let mainData = null, unionKinds = new Set(['marriage', 'engagement']), uview = null;
-  function renderUnions() {
-    uview = unionsView(mainData, unionKinds);
-    main.render(uview);
-    main.onPick = (id, ev) => {
-      if (!id) { main.highlight(null); $('#upanel').hidden = true; return false; }
-      if (ev.target.closest('a') && $('#upanel').dataset.id === id) return false; // второй клик по имени — открыть род
-      focusRod(id); return true;
-    };
-  }
-  function focusRod(id) {
-    const byId = new Map(uview.nodes.map((n) => [n.id, n]));
-    const me = byId.get(id); if (!me) return;
-    const ids = new Set([id]); ids.focus = id;
-    const cx = (n) => n.x + n.width / 2, cy = (n) => n.y + n.height / 2, rows = [];
-    for (const p of uview.pairs) {
-      if (p.a !== id && p.b !== id) continue;
-      const o = byId.get(p.a === id ? p.b : p.a); if (!o) continue;
-      ids.add(o.id);
-      const dy = cy(me) - cy(o), dx = cx(o) - cx(me);
-      const up = dy > 300 ? '<b class="up">▲ выше</b>' : dy < -300 ? '<b class="down">▼ ниже</b>' : '<b>≈ вровень</b>'; // меньше y = выше на холсте
-      const side = Math.abs(dx) < 400 ? '' : dx < 0 ? ' · левее' : ' · правее';
-      const name = (o.text || '').replace(/^\[\[[^|]*\|/, '').replace(/\]\]$/, '').replace(/\*\*/g, '').replace(/\[\[|\]\]/g, '');
-      rows.push({ dy, html: `<li data-id="${esc(o.id)}"><span>${esc(name)}</span><small>${up}${side} · ${Object.entries(p.kinds).map(([k, c]) => KIND_NAME[k] + (c > 1 ? ' ×' + c : '')).join(', ')}</small>${p.who ? `<small class="who">${p.who.map(esc).join(', ')}</small>` : ''}</li>` });
-    }
-    main.highlight(ids);
-    const link = linkOf(me) || (me.text && resolve(/\[\[([^|\]]+)/.exec(me.text)?.[1] || ''));
-    const title = (me.text || '').replace(/^\[\[[^|]*\|/, '').replace(/\]\]$/, '');
-    const pn = $('#upanel'); pn.dataset.id = id; pn.hidden = false;
-    pn.innerHTML = `<div class="uh"><b>${esc(title)}</b><button aria-label="Закрыть">✕</button></div>
-      ${link ? `<a class="btn" href="${href.note(link)}">Страница рода →</a>` : ''}
-      <p class="hint">Положение партнёра относительно этого рода (статус по вертикали, политика по горизонтали):</p>
-      <ul>${rows.sort((a, b) => b.dy - a.dy).map((r) => r.html).join('') || '<li>Союзов этого типа нет</li>'}</ul>`;
-    $('button', pn).onclick = () => { pn.hidden = true; main.highlight(null); };
-    pn.querySelectorAll('li[data-id]').forEach((li) => (li.onclick = () => focusRod(li.dataset.id)));
-  }
+  let mainData = null;
+  function renderUnions() { main.render(unionsView(mainData)); }
 
   async function showCanvas(path, focus, mode) {
     page.hidden = true; host.hidden = false; $('#cvctl').hidden = false;
@@ -427,14 +387,14 @@
     mode = !isMain || focus ? 'people' : ['map', 'people'].includes(mode) ? mode : 'unions'; // посторонний сначала видит рода
     $('#modes').hidden = !isMain; $('#axes').hidden = !isMain; $('#legend').hidden = !isMain;
     document.querySelectorAll('#modes a').forEach((a) => a.classList.toggle('on', a.dataset.mode === mode));
-    $('#host').dataset.mode = mode; $('#ufilter').hidden = mode !== 'unions'; $('#upanel').hidden = true; if (mode === 'map') $('#legend').hidden = true;
+    $('#host').dataset.mode = mode;  if (mode === 'map') $('#legend').hidden = true;
     if (mainPath !== path + mode) {
       mainPath = path + mode; main.clear(); main.setStatus('Загрузка…');
       let data;
       try { data = await getJSON(path); } catch (e) { main.setStatus('Не удалось загрузить ' + path); return; }
       if (mainPath !== path + mode) return;
       mainData = data;
-      if (mode === 'unions') renderUnions(); else { main.onPick = null; main.render(mode === 'map' ? mapView(data) : data); }
+      main.render(mode === 'unions' ? unionsView(data) : mode === 'map' ? mapView(data) : data);
       if (!focus) main.fit();
     }
     if (focus && !main.focus(focus)) main.fit();
@@ -502,16 +462,9 @@
     }
     for (const c of manifest.canvases) $('#pick').add(new Option(baseName(c), c));
     $('#modes').innerHTML = `<a data-mode="map" href="${href.canvas(MAIN)}?mode=map">Карта</a><a data-mode="unions" href="${href.canvas(MAIN)}?mode=unions">Союзы родов</a><a data-mode="people" href="${href.canvas(MAIN)}?mode=people">Люди</a>`;
-    $('#ufilter').innerHTML = '<span>Связи:</span>' + [['marriage', 'браки'], ['engagement', 'помолвки'], ['blood', 'кровное родство']]
-      .map(([k, l]) => `<label><input type="checkbox" value="${k}" ${k !== 'blood' ? 'checked' : ''}><i style="background:${col(KIND_COLOR[k === 'blood' ? 'parent' : k])}"></i>${l}</label>`).join('');
-    $('#ufilter').onchange = () => {
-      const on = new Set([...$('#ufilter').querySelectorAll('input:checked')].map((i) => i.value));
-      unionKinds = new Set([...on].flatMap((k) => (k === 'blood' ? ['parent', 'ancestor', 'sibling'] : [k])));
-      const v = { ...main.view }; renderUnions(); main.view = v; main.apply(); $('#upanel').hidden = true;
-    };
     $('#legend').innerHTML = '<summary>Легенда</summary>' + ['marriage', 'engagement', 'parent', 'ancestor', 'sibling']
       .map((k) => `<div><i style="background:${col(KIND_COLOR[k])}"></i>${KIND_NAME[k]}</div>`).join('') +
-      '<p>В «Союзах»: толщина и число — сколько связей между родами. Нажми на род, чтобы увидеть только его союзы и кто из партнёров выше или ниже по статусу.</p>';
+      '<p>В «Союзах» в рамках оставлены только те, кто вошёл в род из другого рода (девичья фамилия в скобках), и их супруги. Пунктир ведёт к родне в родном роду.</p>';
     const legacy = new URLSearchParams(location.search).get('c'); // старые ссылки ?c=
     if (legacy) history.replaceState(null, '', location.pathname + href.canvas(legacy));
     window.addEventListener('hashchange', route);
