@@ -63,7 +63,8 @@
   // ---------- Холст ----------
   const NS = 'http://www.w3.org/2000/svg';
   class CanvasView {
-    constructor(host, onZoom) {
+    constructor(host, onZoom, min = MIN) {
+      this.min = min;
       this.onZoom = onZoom || (() => {});
       this.view = { x: 0, y: 0, k: 1 };
       host.innerHTML = '<div class="cv"><div class="world"><div class="groups"></div><svg width="1" height="1"></svg><div class="nodes"></div></div><div class="status" hidden></div></div>';
@@ -163,7 +164,7 @@
       this.onZoom(k);
     }
     zoomAt(cx, cy, k) {
-      const v = this.view; k = Math.min(MAX, Math.max(MIN, k));
+      const v = this.view; k = Math.min(MAX, Math.max(this.min, k));
       v.x = cx - (cx - v.x) * (k / v.k); v.y = cy - (cy - v.y) * (k / v.k); v.k = k; this.apply();
     }
     zoomBy(f) { this.zoomAt(this.vp.clientWidth / 2, this.vp.clientHeight / 2, this.view.k * f); }
@@ -171,7 +172,7 @@
       const b = this.bounds; if (!b) return;
       const pad = 30, W = this.vp.clientWidth - pad * 2, H = this.vp.clientHeight - pad * 2;
       const bw = b.x1 - b.x0 + 80, bh = b.y1 - b.y0 + 80; // +80: подписи групп над рамкой
-      const k = Math.min(MAX, Math.max(MIN, Math.min(W / bw, H / bh, 1.2)));
+      const k = Math.min(MAX, Math.max(this.min, Math.min(W / bw, H / bh, 1.2)));
       this.view = { k, x: pad + (W - bw * k) / 2 - (b.x0 - 40) * k, y: pad + (H - bh * k) / 2 - (b.y0 - 60) * k };
       this.apply();
     }
@@ -251,40 +252,84 @@
   }
   function rodSubgraph(data, rodPath, people) {
     const name = baseName(rodPath);
-    const groups = data.nodes.filter((n) => n.type === 'group' && groupName(n.label) === name);
-    const inside = (n, g) => n.x >= g.x && n.y >= g.y && n.x + n.width <= g.x + g.width && n.y + n.height <= g.y + g.height;
+    const allGroups = data.nodes.filter((n) => n.type === 'group');
+    const own = allGroups.filter((g) => groupName(g.label) === name);
+    const inside = (n, g) => n !== g && n.x >= g.x && n.y >= g.y && n.x + n.width <= g.x + g.width && n.y + n.height <= g.y + g.height;
+    const ownerOf = (n) => allGroups.filter((g) => inside(n, g)).sort((a, b) => a.width * a.height - b.width * b.height)[0];
+
+    // ядро рода: всё внутри его рамки + люди из заметки рода, где бы они ни стояли
     const core = new Set();
     for (const n of data.nodes) {
-      if (groups.some((g) => n !== g && inside(n, g))) core.add(n.id);
+      if (own.some((g) => inside(n, g))) core.add(n.id);
       else if (n.type !== 'group' && people.has(linkOf(n))) core.add(n.id);
     }
     if (!core.size) return null;
-    const keep = new Set([...core, ...groups.map((g) => g.id)]);
-    const edges = data.edges.filter((e) => core.has(e.fromNode) || core.has(e.toNode));
-    for (const e of edges) { keep.add(e.fromNode); keep.add(e.toNode); }
-    const nodes = data.nodes.filter((n) => keep.has(n.id) && (n.type !== 'group' || groups.includes(n) || core.has(n.id)))
-      .map((n) => ({ ...n }));
-    // соседей из других родов подтягиваем к рамке: на луче от центра рода к их настоящему месту
-    const inner = groups.length ? nodes.filter((n) => groups.some((g) => g.id === n.id || inside(n, g)))
-                                : nodes.filter((n) => core.has(n.id));
-    const bx0 = Math.min(...inner.map((n) => n.x)), by0 = Math.min(...inner.map((n) => n.y));
-    const bx1 = Math.max(...inner.map((n) => n.x + n.width)), by1 = Math.max(...inner.map((n) => n.y + n.height));
-    const cx = (bx0 + bx1) / 2, cy = (by0 + by1) / 2, M = 140;
-    const placed = [...inner];
-    const hit = (a) => placed.some((b) => a.x < b.x + b.width + 20 && b.x < a.x + a.width + 20 && a.y < b.y + b.height + 20 && b.y < a.y + a.height + 20 && b.type !== 'group');
-    const outer = nodes.filter((n) => !inner.includes(n))
-      .sort((a, b) => Math.atan2(a.y - cy, a.x - cx) - Math.atan2(b.y - cy, b.x - cx));
-    for (const n of outer) {
-      const dx = n.x + n.width / 2 - cx, dy = n.y + n.height / 2 - cy;
-      const hw = (bx1 - bx0) / 2 + M + n.width / 2, hh = (by1 - by0) / 2 + M + n.height / 2;
-      const t = Math.min(hw / Math.abs(dx || 1e-9), hh / Math.abs(dy || 1e-9), 1);
-      n.x = cx + dx * t - n.width / 2; n.y = cy + dy * t - n.height / 2;
-      const horiz = Math.abs(dx * t) >= hw - 1; // вышли на левую/правую сторону — двигаем по вертикали
-      for (let i = 0; i < 200 && hit(n); i++) horiz ? (n.y += 30) : (n.x += 40);
-      n.color = n.color || undefined; n.ext = true;
-      placed.push(n);
+    const byId = new Map(data.nodes.map((n) => [n.id, n]));
+
+    // соседи по связям → их рода целиком (рамка со всем содержимым), либо одиночная карточка
+    const blocks = new Map(); // key → Set(id)
+    const addBlock = (key, ids) => { if (!blocks.has(key)) blocks.set(key, new Set()); ids.forEach((i) => blocks.get(key).add(i)); };
+    for (const e of data.edges) {
+      const [inA, inB] = [core.has(e.fromNode), core.has(e.toNode)];
+      if (inA === inB) continue;
+      const nb = byId.get(inA ? e.toNode : e.fromNode); if (!nb) continue;
+      let g = ownerOf(nb);
+      while (g && ownerOf(g) && !own.includes(ownerOf(g))) g = ownerOf(g); // самая внешняя рамка
+      if (g && !own.includes(g)) addBlock(g.id, [g.id, ...data.nodes.filter((n) => inside(n, g)).map((n) => n.id)]);
+      else addBlock(nb.id, [nb.id]);
     }
-    return { nodes, edges: edges.filter((e) => keep.has(e.fromNode) && keep.has(e.toNode)) };
+    // люди рода, стоящие в чужих рамках (замужние и т.п.), тоже переезжают к роду
+    for (const id of core) {
+      const n = byId.get(id);
+      if (!own.some((g) => inside(n, g)) && n.type !== 'group') addBlock(id, [id]);
+    }
+
+    const clone = (n) => ({ ...n });
+    const innerNodes = data.nodes.filter((n) => own.includes(n) || own.some((g) => inside(n, g))).map(clone);
+    const inner = innerNodes.length ? innerNodes : [...core].map((id) => clone(byId.get(id)));
+    const out = [...inner];
+    const used = new Set(out.map((n) => n.id));
+    const bbox = (ns) => ({ x0: Math.min(...ns.map((n) => n.x)), y0: Math.min(...ns.map((n) => n.y) ) - 50,
+      x1: Math.max(...ns.map((n) => n.x + n.width)), y1: Math.max(...ns.map((n) => n.y + n.height)) });
+    const B = bbox(inner), cx = (B.x0 + B.x1) / 2, cy = (B.y0 + B.y1) / 2, M = 160, GAP = 60;
+    const placed = [B];
+    const hits = (r) => placed.some((q) => r.x0 < q.x1 + GAP && q.x0 < r.x1 + GAP && r.y0 < q.y1 + GAP && q.y0 < r.y1 + GAP);
+
+    const list = [...blocks.entries()].map(([key, ids]) => {
+      const ns = [...ids].filter((i) => !used.has(i)).map((i) => clone(byId.get(i))).filter(Boolean);
+      return { key, ns, r: ns.length && bbox(ns) };
+    }).filter((b) => b.ns.length)
+      .sort((a, b) => Math.atan2((a.r.y0 + a.r.y1) / 2 - cy, (a.r.x0 + a.r.x1) / 2 - cx) - Math.atan2((b.r.y0 + b.r.y1) / 2 - cy, (b.r.x0 + b.r.x1) / 2 - cx));
+    // раскладка: каждый блок уходит на ту сторону от рода, куда он смотрел на большом холсте
+    const sides = { top: [], right: [], bottom: [], left: [] };
+    for (const b of list) {
+      b.ns = b.ns.filter((n) => !used.has(n.id)); if (!b.ns.length) continue;
+      b.ns.forEach((n) => used.add(n.id));
+      b.r = bbox(b.ns);
+      const dx = ((b.r.x0 + b.r.x1) / 2 - cx) / (B.x1 - B.x0 || 1), dy = ((b.r.y0 + b.r.y1) / 2 - cy) / (B.y1 - B.y0 || 1);
+      sides[Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'bottom' : 'top')].push(b);
+    }
+    const put = (b, nx, ny) => {
+      const ox = nx - b.r.x0, oy = ny - b.r.y0;
+      for (const n of b.ns) { n.x += ox; n.y += oy; if (n.type !== 'group' && !core.has(n.id)) n.ext = true; out.push(n); }
+    };
+    const W = (b) => b.r.x1 - b.r.x0, Hh = (b) => b.r.y1 - b.r.y0;
+    // лево/право — колонками, сверху вниз по исходному y
+    for (const side of ['left', 'right']) {
+      const col = sides[side].sort((a, b) => a.r.y0 - b.r.y0);
+      const total = col.reduce((s, b) => s + Hh(b) + GAP, -GAP);
+      let y = cy - total / 2;
+      for (const b of col) { put(b, side === 'left' ? B.x0 - M - W(b) : B.x1 + M, y); y += Hh(b) + GAP; }
+    }
+    // верх/низ — рядами, слева направо по исходному x
+    for (const side of ['top', 'bottom']) {
+      const row = sides[side].sort((a, b) => a.r.x0 - b.r.x0);
+      const total = row.reduce((s, b) => s + W(b) + GAP, -GAP);
+      let x = cx - total / 2;
+      for (const b of row) { put(b, x, side === 'top' ? B.y0 - M - Hh(b) : B.y1 + M); x += W(b) + GAP; }
+    }
+    const ids = new Set(out.map((n) => n.id));
+    return { nodes: out, edges: data.edges.filter((e) => ids.has(e.fromNode) && ids.has(e.toNode)) };
   }
 
   // ---------- UI ----------
@@ -344,15 +389,15 @@
     if (!$('h1', art)) art.insertAdjacentHTML('afterbegin', `<h1>${esc(title)}</h1>`);
 
     if (isRod && mainData) {
-      const sect = (/^## Люди\s*\n([\s\S]*?)(?=^## |\Z)/m.exec(raw) || [, ''])[1];
+      const sect = (/^## Люди[^\n]*\n([\s\S]*?)(?=^## |(?![\s\S]))/m.exec(raw) || [, ''])[1];
       const people = new Set([...sect.matchAll(/\[\[([^\]|#]+)/g)].map((m) => resolve(m[1].trim())).filter(Boolean));
       const sub = rodSubgraph(mainData, path, people);
       if (sub) {
         const sec = document.createElement('section');
         sec.innerHTML = '<h2>Связи рода</h2><div class="mini"><div class="mini-ctl"><button data-a="in">+</button><button data-a="out">−</button><button data-a="fit">⤢</button></div><div class="mini-cv" style="height:100%"></div></div>';
         $('h1', art).after(sec);
-        const cv = new CanvasView($('.mini-cv', sec));
-        cv.render(sub); cv.fit();
+        const cv = new CanvasView($('.mini-cv', sec), null, 0.03);
+        cv.render(sub); requestAnimationFrame(() => cv.fit());
         $('.mini-ctl', sec).onclick = (e) => { const a = e.target.dataset.a; a === 'in' ? cv.zoomBy(1.25) : a === 'out' ? cv.zoomBy(0.8) : a === 'fit' && cv.fit(); };
       }
     }
