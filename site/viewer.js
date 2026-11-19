@@ -265,5 +265,12 @@
   window.addEventListener('resize', apply);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') $('#panel').hidden = true; });
 
+  $('#theme').onclick = () => {
+    const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    const t = cur === 'light' ? 'dark' : 'light';
+    document.documentElement.dataset.theme = t;
+    try { localStorage.setItem('theme', t); } catch {}
+  };
+
   init();
 })();
