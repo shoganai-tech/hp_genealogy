@@ -4,7 +4,7 @@
 Запуск: python3 build_site.py
 Холсты можно потом подменять прямо в site/ — вьюер грузит их fetch'ем.
 """
-import json, shutil
+import json, shutil, unicodedata
 from pathlib import Path
 
 ROOT = Path(__file__).parent
@@ -27,6 +27,7 @@ for p in sorted(SRC.rglob("*")):
     rel = p.relative_to(SRC)
     if p.is_dir() or set(rel.parts) & SKIP_DIRS or p.suffix.lower() not in KEEP_EXT or p.name.startswith("."):
         continue
+    rel = Path(unicodedata.normalize('NFC', rel.as_posix()))  # macOS отдаёт NFD, а git/GitHub и холсты — NFC
     out = DST / rel
     out.parent.mkdir(parents=True, exist_ok=True)
     if p.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"} and p.stat().st_size > 1_000_000:

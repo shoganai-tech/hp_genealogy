@@ -3,34 +3,27 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Роды — холсты</title>
+<title>Роды</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=4">
 <script>try{const t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch{}</script>
 </head>
 <body>
 <header id="bar">
+  <a id="home" href="#/" title="Главный холст">Роды</a>
   <select id="pick" aria-label="Холст"></select>
-  <button id="fit" title="Вписать в экран">⤢ <span class="lbl">Fit</span></button>
-  <button id="zin" title="Приблизить">+</button>
-  <button id="zout" title="Отдалить">−</button>
-  <button id="theme" title="Тема">◐</button>
-  <span id="zoom">100%</span>
+  <span id="cvctl">
+    <button id="fit" title="Вписать в экран">⤢</button>
+    <button id="zin" title="Приблизить">+</button>
+    <button id="zout" title="Отдалить">−</button>
+    <span id="zoom">100%</span>
+  </span>
+  <button id="theme" title="Светлая / тёмная тема">◐</button>
 </header>
-<div id="viewport">
-  <div id="world">
-    <div id="groups"></div>
-    <svg id="edges" width="1" height="1"></svg>
-    <div id="nodes"></div>
-  </div>
-  <div id="status">Загрузка…</div>
-</div>
-<aside id="panel" hidden>
-  <div class="ph"><span id="ptitle"></span><button id="pclose" aria-label="Закрыть">✕</button></div>
-  <div id="pbody" class="md"></div>
-</aside>
+<main id="host"></main>
+<div id="page" hidden></div>
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-<script src="viewer.js?v=3"></script>
+<script src="viewer.js?v=4"></script>
 </body>
 </html>

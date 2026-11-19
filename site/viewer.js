@@ -1,15 +1,39 @@
 (() => {
-  const $ = (s) => document.querySelector(s);
-  const vp = $('#viewport'), world = $('#world'), svg = $('#edges'),
-    nodesEl = $('#nodes'), groupsEl = $('#groups'), status = $('#status');
+  const $ = (s, r = document) => r.querySelector(s);
+  const MAIN = 'Рода — структура.canvas';
   const MIN = 0.1, MAX = 4;
   const PRESET = { 1: 'var(--c1)', 2: 'var(--c2)', 3: 'var(--c3)', 4: 'var(--c4)', 5: 'var(--c5)', 6: 'var(--c6)' };
   const col = (c) => (c ? PRESET[c] || c : null);
   const enc = (p) => p.split('/').map(encodeURIComponent).join('/');
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  const baseName = (p) => p.split('/').pop().replace(/\.(md|canvas)$/, '');
+  const groupName = (l) => (l || '').split('·')[0].replace(/ /g, ' ').trim();
 
   let manifest = { canvases: [], files: [] };
-  let byName = new Map(); // basename без .md → путь
-  let view = { x: 0, y: 0, k: 1 }, bounds = null;
+  const fileSet = new Set(), byName = new Map(), cache = new Map();
+  const getText = (p) => {
+    if (!cache.has(p)) cache.set(p, fetch(enc(p), { cache: 'no-cache' }).then((r) => {
+      if (!r.ok) throw new Error(r.status); return r.text();
+    }));
+    return cache.get(p);
+  };
+  const getJSON = async (p) => JSON.parse(await getText(p));
+
+  // ---------- ссылки ----------
+  const href = { note: (p) => '#/n/' + encodeURI(p), canvas: (p, focus) => '#/c/' + encodeURI(p) + (focus ? '?focus=' + encodeURIComponent(focus) : '') };
+  // всё сравниваем в NFC: macOS отдаёт имена файлов в NFD («й», «ё» разложены)
+  const nfc = (s) => s.normalize('NFC');
+  function resolve(name) {
+    name = nfc(name);
+    if (fileSet.has(name)) return name;
+    if (fileSet.has(name + '.md')) return name + '.md';
+    return byName.get(name.split('/').pop().replace(/\.md$/, '')) || null;
+  }
+  function resolveFile(p) { // пути из канваса могут идти от корня волта
+    const parts = nfc(p).split('/');
+    for (let i = 0; i < parts.length; i++) { const s = parts.slice(i).join('/'); if (fileSet.has(s)) return s; }
+    return null;
+  }
 
   // ---------- Markdown + KaTeX + wikilinks ----------
   marked.setOptions({ gfm: true, breaks: true });
@@ -17,8 +41,7 @@
     src = src.replace(/^---\n[\s\S]*?\n---\n?/, '');
     const math = [];
     const keep = (tex, display) => {
-      try { math.push(katex.renderToString(tex, { displayMode: display, throwOnError: false })); }
-      catch { math.push(tex); }
+      try { math.push(katex.renderToString(tex, { displayMode: display, throwOnError: false })); } catch { math.push(esc(tex)); }
       return `\u0000M${math.length - 1}\u0000`;
     };
     src = src.replace(/\$\$([\s\S]+?)\$\$/g, (_, t) => keep(t, true))
@@ -26,126 +49,189 @@
     src = src.replace(/(!?)\[\[([^\]|#]+)(#[^\]|]*)?(?:\|([^\]]+))?\]\]/g, (_, emb, target, _h, alias) => {
       const path = resolve(target.trim());
       if (emb && path && /\.(png|jpe?g|gif|webp|svg)$/i.test(path)) return `<img src="${enc(path)}" alt="">`;
-      const label = (alias || target).replace(/</g, '&lt;');
-      return path ? `<span class="wl" data-note="${path.replace(/"/g, '&quot;')}">${label}</span>`
-                  : `<span class="wl dead">${label}</span>`;
+      const label = esc(alias || target);
+      if (!path) return `<span class="wl dead">${label}</span>`;
+      return path.endsWith('.canvas') ? `<a class="wl" href="${href.canvas(path)}">${label}</a>`
+                                      : `<a class="wl" href="${href.note(path)}" data-note="${esc(path)}">${label}</a>`;
     });
-    let html = marked.parse(src);
-    html = html.replace(/\u0000M(\d+)\u0000/g, (_, i) => math[+i]);
-    // Obsidian callouts: > [!type] Title
+    let html = marked.parse(src).replace(/\u0000M(\d+)\u0000/g, (_, i) => math[+i]);
     html = html.replace(/<blockquote>\s*<p>\[!(\w+)\][-+]?\s*([^<\n]*)(?:<br>)?/g,
       (_, type, title) => `<blockquote class="callout callout-${type}"><p><span class="callout-title">${title || type}</span><br>`);
     return html;
   }
-  function resolve(name) {
-    if (manifest.files.includes(name)) return name;
-    if (manifest.files.includes(name + '.md')) return name + '.md';
-    const base = name.split('/').pop().replace(/\.md$/, '');
-    return byName.get(base) || null;
-  }
-  // путь из канваса может начинаться с корня волта — подрезаем до файла, который реально есть
-  function resolveFile(p) {
-    if (manifest.files.includes(p)) return p;
-    const parts = p.split('/');
-    for (let i = 1; i < parts.length; i++) {
-      const s = parts.slice(i).join('/');
-      if (manifest.files.includes(s)) return s;
+
+  // ---------- Холст ----------
+  const NS = 'http://www.w3.org/2000/svg';
+  class CanvasView {
+    constructor(host, onZoom) {
+      this.onZoom = onZoom || (() => {});
+      this.view = { x: 0, y: 0, k: 1 };
+      host.innerHTML = '<div class="cv"><div class="world"><div class="groups"></div><svg width="1" height="1"></svg><div class="nodes"></div></div><div class="status" hidden></div></div>';
+      this.vp = $('.cv', host); this.world = $('.world', host); this.svg = $('svg', host);
+      this.nodesEl = $('.nodes', host); this.groupsEl = $('.groups', host); this.status = $('.status', host);
+      this.bindInput();
     }
-    return null;
-  }
+    setStatus(t) { this.status.hidden = !t; this.status.textContent = t || ''; }
+    clear() { this.nodesEl.innerHTML = this.groupsEl.innerHTML = this.svg.innerHTML = ''; this.world.querySelectorAll('.elabel').forEach((e) => e.remove()); }
 
-  // ---------- Загрузка ----------
-  async function init() {
-    try { manifest = await (await fetch('manifest.json', { cache: 'no-cache' })).json(); } catch {}
-    for (const f of manifest.files) if (f.endsWith('.md')) {
-      const b = f.split('/').pop().slice(0, -3);
-      if (!byName.has(b) || byName.get(b).startsWith('_старые/')) byName.set(b, f);
-    }
-    const pick = $('#pick');
-    const list = manifest.canvases.length ? manifest.canvases : ['canvas.canvas'];
-    for (const c of list) pick.add(new Option(c.replace(/\.canvas$/, ''), c));
-    const q = new URLSearchParams(location.search).get('c');
-    const start = q && list.includes(q) ? q : (list.find((c) => c.startsWith('Рода — структура')) || list[0]);
-    pick.value = start;
-    pick.onchange = () => load(pick.value, true);
-    load(start, false);
-  }
-
-  async function load(path, push) {
-    status.hidden = false; status.textContent = 'Загрузка…';
-    nodesEl.innerHTML = groupsEl.innerHTML = svg.innerHTML = '';
-    world.querySelectorAll('.elabel').forEach((e) => e.remove());
-    if (push) history.replaceState(null, '', '?c=' + encodeURIComponent(path));
-    $('#pick').value = path;
-    let data;
-    try {
-      const r = await fetch(enc(path), { cache: 'no-cache' });
-      if (!r.ok) throw new Error(r.status);
-      data = await r.json();
-    } catch (e) { status.textContent = 'Не удалось загрузить ' + path + ' (' + e.message + ')'; return; }
-    status.hidden = true;
-    draw(data);
-    fit();
-  }
-
-  function draw({ nodes = [], edges = [] }) {
-    const byId = new Map(nodes.map((n) => [n.id, n]));
-    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-    for (const n of nodes) {
-      x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y);
-      x1 = Math.max(x1, n.x + n.width); y1 = Math.max(y1, n.y + n.height);
-      const el = document.createElement('div');
-      Object.assign(el.style, { left: n.x + 'px', top: n.y + 'px', width: n.width + 'px', height: n.height + 'px' });
-      if (n.color) { el.dataset.c = ''; el.style.setProperty('--nc', col(n.color)); }
-      if (n.type === 'group') {
-        el.className = 'group';
-        if (n.label) { const l = document.createElement('div'); l.className = 'glabel'; l.textContent = n.label; el.append(l); }
-        groupsEl.append(el); continue;
+    render({ nodes = [], edges = [] }) {
+      this.clear(); this.setStatus('');
+      const byId = new Map(nodes.map((n) => [n.id, n]));
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      for (const n of nodes) {
+        x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y); x1 = Math.max(x1, n.x + n.width); y1 = Math.max(y1, n.y + n.height);
+        const el = document.createElement('div');
+        Object.assign(el.style, { left: n.x + 'px', top: n.y + 'px', width: n.width + 'px', height: n.height + 'px' });
+        if (n.color) { el.dataset.c = ''; el.style.setProperty('--nc', col(n.color)); }
+        if (n.type === 'group') {
+          el.className = 'group';
+          if (n.label) {
+            const l = document.createElement('div'); l.className = 'glabel'; l.textContent = n.label;
+            const p = resolve('Рода/' + groupName(n.label)) || null;
+            if (p) { l.classList.add('wl'); l.dataset.link = p; }
+            el.append(l);
+          }
+          this.groupsEl.append(el); continue;
+        }
+        el.className = 'node md' + (n.ext ? ' ext' : '');
+        if (n.type === 'text') {
+          el.innerHTML = renderMd(n.text || '');
+          const links = el.querySelectorAll('.wl[data-note]');
+          if (links.length) { el.classList.add('card'); el.dataset.link = links[0].dataset.note; }
+          if ((n.text || '').length > 200) el.classList.add('long');
+        } else if (n.type === 'link') el.innerHTML = `<a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.url)}</a>`;
+        else if (n.type === 'file') this.fileNode(el, n);
+        this.nodesEl.append(el);
       }
-      el.className = 'node md';
-      if (n.type === 'text') el.innerHTML = renderMd(n.text || '');
-      else if (n.type === 'link') el.innerHTML = `<a href="${n.url}" target="_blank" rel="noopener">${n.url}</a>`;
-      else if (n.type === 'file') fileNode(el, n);
-      nodesEl.append(el);
-    }
-    if (!nodes.length) { x0 = y0 = 0; x1 = y1 = 100; }
-    bounds = { x0, y0, x1, y1 };
+      if (!nodes.length) { x0 = y0 = 0; x1 = y1 = 100; }
+      this.bounds = { x0, y0, x1, y1 };
 
-    const NS = 'http://www.w3.org/2000/svg';
-    const defs = document.createElementNS(NS, 'defs'); svg.append(defs);
-    const markers = new Map();
-    const marker = (c) => {
-      if (markers.has(c)) return markers.get(c);
-      const id = 'm' + markers.size;
-      const m = document.createElementNS(NS, 'marker');
-      m.setAttribute('id', id); m.setAttribute('viewBox', '0 0 10 10'); m.setAttribute('refX', '9'); m.setAttribute('refY', '5');
-      m.setAttribute('markerWidth', '7'); m.setAttribute('markerHeight', '7'); m.setAttribute('orient', 'auto-start-reverse');
-      m.setAttribute('markerUnits', 'strokeWidth');
-      m.innerHTML = `<path d="M0,0 L10,5 L0,10 z" style="fill:${c}"/>`;
-      defs.append(m); markers.set(c, id); return id;
-    };
-    for (const e of edges) {
-      const a = byId.get(e.fromNode), b = byId.get(e.toNode);
-      if (!a || !b) continue;
-      const fs = e.fromSide || autoSide(a, b), ts = e.toSide || autoSide(b, a);
-      const p1 = sidePt(a, fs), p2 = sidePt(b, ts);
-      const d = Math.hypot(p2.x - p1.x, p2.y - p1.y);
-      const off = Math.max(40, Math.min(d / 2, 250));
-      const c1 = push(p1, fs, off), c2 = push(p2, ts, off);
-      const c = col(e.color) || '#888';
-      const path = document.createElementNS(NS, 'path');
-      path.setAttribute('d', `M${p1.x},${p1.y} C${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}`);
-      path.setAttribute('fill', 'none'); path.style.stroke = c; path.setAttribute('stroke-width', '3');
-      if ((e.toEnd || 'arrow') === 'arrow') path.setAttribute('marker-end', `url(#${marker(c)})`);
-      if ((e.fromEnd || 'none') === 'arrow') path.setAttribute('marker-start', `url(#${marker(c)})`);
-      svg.append(path);
-      if (e.label) {
-        const t = 0.5, mt = 1 - t;
-        const mx = mt ** 3 * p1.x + 3 * mt * mt * t * c1.x + 3 * mt * t * t * c2.x + t ** 3 * p2.x;
-        const my = mt ** 3 * p1.y + 3 * mt * mt * t * c1.y + 3 * mt * t * t * c2.y + t ** 3 * p2.y;
-        const l = document.createElement('div'); l.className = 'elabel'; l.textContent = e.label;
-        l.style.left = mx + 'px'; l.style.top = my + 'px'; world.append(l);
+      const defs = document.createElementNS(NS, 'defs'); this.svg.append(defs);
+      const markers = new Map(), uid = Math.random().toString(36).slice(2, 7);
+      const marker = (c) => {
+        if (markers.has(c)) return markers.get(c);
+        const id = `m${uid}${markers.size}`, m = document.createElementNS(NS, 'marker');
+        for (const [k, v] of Object.entries({ id, viewBox: '0 0 10 10', refX: 10, refY: 5, markerWidth: 12, markerHeight: 12,
+          orient: 'auto-start-reverse', markerUnits: 'userSpaceOnUse' })) m.setAttribute(k, v);
+        m.innerHTML = `<path d="M0,1 L10,5 L0,9 z" style="fill:${c}"/>`;
+        defs.append(m); markers.set(c, id); return id;
+      };
+      for (const e of edges) {
+        const a = byId.get(e.fromNode), b = byId.get(e.toNode);
+        if (!a || !b) continue;
+        let fs = e.fromSide || autoSide(a, b), ts = e.toSide || autoSide(b, a);
+        // узлы налезают друг на друга по оси — стрелка сделала бы петлю; переводим на другую пару сторон
+        const H = { left: 1, right: 1 };
+        if (H[fs] && H[ts] && fs !== ts && (fs === 'left' ? b.x + b.width > a.x : b.x < a.x + a.width) && (fs === 'left') === (b.x < a.x)) {
+          const down = b.y > a.y; fs = down ? 'bottom' : 'top'; ts = down ? 'top' : 'bottom';
+        } else if (!H[fs] && !H[ts] && fs !== ts && (fs === 'top' ? b.y + b.height > a.y : b.y < a.y + a.height) && (fs === 'top') === (b.y < a.y)) {
+          const right = b.x > a.x; fs = right ? 'right' : 'left'; ts = right ? 'left' : 'right';
+        }
+        const p1 = sidePt(a, fs), p2 = sidePt(b, ts);
+        const d = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+        const off = Math.max(60, Math.min(d / 2, 250));
+        const c1 = push(p1, fs, off), c2 = push(p2, ts, off);
+        const c = col(e.color) || 'var(--muted)';
+        const path = document.createElementNS(NS, 'path');
+        path.setAttribute('d', `M${p1.x},${p1.y} C${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}`);
+        path.setAttribute('fill', 'none'); path.style.stroke = c; path.setAttribute('stroke-width', '2.5');
+        path.setAttribute('stroke-linecap', 'round');
+        if ((e.toEnd || 'arrow') === 'arrow') path.setAttribute('marker-end', `url(#${marker(c)})`);
+        if ((e.fromEnd || 'none') === 'arrow') path.setAttribute('marker-start', `url(#${marker(c)})`);
+        this.svg.append(path);
+        if (e.label) {
+          const t = 0.5, mt = 0.5, f = (a, b, c, d) => mt ** 3 * a + 3 * mt * mt * t * b + 3 * mt * t * t * c + t ** 3 * d;
+          const l = document.createElement('div'); l.className = 'elabel'; l.textContent = e.label;
+          l.style.left = f(p1.x, c1.x, c2.x, p2.x) + 'px'; l.style.top = f(p1.y, c1.y, c2.y, p2.y) + 'px';
+          this.world.append(l);
+        }
       }
+    }
+    async fileNode(el, n) {
+      const p = resolveFile(n.file), name = n.file.split('/').pop();
+      if (!p) { el.classList.add('missing'); el.textContent = name + ' (не опубликован)'; return; }
+      if (/\.(png|jpe?g|gif|webp|svg)$/i.test(p)) { el.className = 'node img'; el.innerHTML = `<img src="${enc(p)}" alt="" loading="lazy" draggable="false">`; return; }
+      if (p.endsWith('.canvas')) { el.innerHTML = `Холст: <a class="wl" href="${href.canvas(p)}">${esc(baseName(p))}</a>`; return; }
+      el.classList.add('long'); el.dataset.link = p;
+      try { el.innerHTML = renderMd(await getText(p)); } catch { el.classList.add('missing'); el.textContent = name; }
+    }
+
+    apply() {
+      const { x, y, k } = this.view;
+      this.world.style.transform = `translate(${x}px,${y}px) scale(${k})`;
+      this.vp.style.backgroundSize = `${24 * k}px ${24 * k}px`; this.vp.style.backgroundPosition = `${x}px ${y}px`;
+      this.onZoom(k);
+    }
+    zoomAt(cx, cy, k) {
+      const v = this.view; k = Math.min(MAX, Math.max(MIN, k));
+      v.x = cx - (cx - v.x) * (k / v.k); v.y = cy - (cy - v.y) * (k / v.k); v.k = k; this.apply();
+    }
+    zoomBy(f) { this.zoomAt(this.vp.clientWidth / 2, this.vp.clientHeight / 2, this.view.k * f); }
+    fit() {
+      const b = this.bounds; if (!b) return;
+      const pad = 30, W = this.vp.clientWidth - pad * 2, H = this.vp.clientHeight - pad * 2;
+      const bw = b.x1 - b.x0 + 80, bh = b.y1 - b.y0 + 80; // +80: подписи групп над рамкой
+      const k = Math.min(MAX, Math.max(MIN, Math.min(W / bw, H / bh, 1.2)));
+      this.view = { k, x: pad + (W - bw * k) / 2 - (b.x0 - 40) * k, y: pad + (H - bh * k) / 2 - (b.y0 - 60) * k };
+      this.apply();
+    }
+    focus(link) {
+      const el = [...this.nodesEl.querySelectorAll('.node')].find((n) => n.dataset.link === link);
+      if (!el) return false;
+      const x = el.offsetLeft + el.offsetWidth / 2, y = el.offsetTop + el.offsetHeight / 2, k = 1;
+      this.view = { k, x: this.vp.clientWidth / 2 - x * k, y: this.vp.clientHeight / 2 - y * k };
+      this.apply();
+      this.nodesEl.querySelectorAll('.hl').forEach((n) => n.classList.remove('hl'));
+      el.classList.add('hl'); setTimeout(() => el.classList.remove('hl'), 2500);
+      return true;
+    }
+
+    bindInput() {
+      const vp = this.vp, ptrs = new Map();
+      let last = null, pinch = null, downAt = null;
+      this.moved = false;
+      vp.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        if (e.shiftKey) { this.view.x -= e.deltaX || e.deltaY; this.apply(); return; }
+        const r = vp.getBoundingClientRect(), dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+        this.zoomAt(e.clientX - r.left, e.clientY - r.top, this.view.k * Math.exp(-dy * (e.ctrlKey ? 0.01 : 0.0015)));
+      }, { passive: false });
+      vp.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0 && e.pointerType === 'mouse') return;
+        ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (ptrs.size === 1) { last = { x: e.clientX, y: e.clientY }; downAt = { ...last }; this.moved = false; }
+        if (ptrs.size === 2) { const [p, q] = [...ptrs.values()]; pinch = { d: Math.hypot(p.x - q.x, p.y - q.y), k: this.view.k }; }
+      });
+      window.addEventListener('pointermove', (e) => {
+        if (!ptrs.has(e.pointerId)) return;
+        ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (!this.moved && downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 5) {
+          this.moved = true; vp.classList.add('drag');
+        }
+        const r = vp.getBoundingClientRect();
+        if (ptrs.size >= 2 && pinch) {
+          const [p, q] = [...ptrs.values()], mx = (p.x + q.x) / 2, my = (p.y + q.y) / 2;
+          if (last) { this.view.x += mx - last.x; this.view.y += my - last.y; }
+          last = { x: mx, y: my };
+          this.zoomAt(mx - r.left, my - r.top, pinch.k * Math.hypot(p.x - q.x, p.y - q.y) / pinch.d);
+          this.moved = true;
+        } else if (this.moved && last) {
+          this.view.x += e.clientX - last.x; this.view.y += e.clientY - last.y; last = { x: e.clientX, y: e.clientY }; this.apply();
+        }
+      });
+      const up = (e) => {
+        if (!ptrs.delete(e.pointerId)) return;
+        if (ptrs.size < 2) pinch = null;
+        if (ptrs.size === 1) { const [p] = ptrs.values(); last = { ...p }; }
+        if (!ptrs.size) { vp.classList.remove('drag'); last = downAt = null; setTimeout(() => (this.moved = false), 0); }
+      };
+      window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
+      vp.addEventListener('click', (e) => {
+        if (this.moved) { e.preventDefault(); e.stopPropagation(); return; }
+        if (e.target.closest('a')) return; // обычная ссылка внутри карточки
+        const t = e.target.closest('[data-link]');
+        if (t) location.hash = href.note(t.dataset.link);
+      }, true);
     }
   }
   const sidePt = (n, s) => ({
@@ -158,119 +244,142 @@
     return Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'bottom' : 'top');
   }
 
-  async function fileNode(el, n) {
-    const p = resolveFile(n.file);
-    const name = n.file.split('/').pop();
-    if (!p) { el.classList.add('missing'); el.textContent = name + ' (не опубликован)'; return; }
-    if (/\.(png|jpe?g|gif|webp|svg)$/i.test(p)) {
-      el.className = 'node img'; el.innerHTML = `<img src="${enc(p)}" alt="" loading="lazy" draggable="false">`; return;
+  // ---------- подграф рода ----------
+  function linkOf(n) {
+    const m = n.type === 'text' && /\[\[([^\]|#]+)/.exec(n.text || '');
+    return m ? resolve(m[1].trim()) : n.type === 'file' ? resolveFile(n.file) : null;
+  }
+  function rodSubgraph(data, rodPath, people) {
+    const name = baseName(rodPath);
+    const groups = data.nodes.filter((n) => n.type === 'group' && groupName(n.label) === name);
+    const inside = (n, g) => n.x >= g.x && n.y >= g.y && n.x + n.width <= g.x + g.width && n.y + n.height <= g.y + g.height;
+    const core = new Set();
+    for (const n of data.nodes) {
+      if (groups.some((g) => n !== g && inside(n, g))) core.add(n.id);
+      else if (n.type !== 'group' && people.has(linkOf(n))) core.add(n.id);
     }
-    if (p.endsWith('.canvas')) {
-      el.innerHTML = `<div class="fname">Холст</div><a href="?c=${encodeURIComponent(p)}" data-canvas="${p}">${name}</a>`; return;
+    if (!core.size) return null;
+    const keep = new Set([...core, ...groups.map((g) => g.id)]);
+    const edges = data.edges.filter((e) => core.has(e.fromNode) || core.has(e.toNode));
+    for (const e of edges) { keep.add(e.fromNode); keep.add(e.toNode); }
+    const nodes = data.nodes.filter((n) => keep.has(n.id) && (n.type !== 'group' || groups.includes(n) || core.has(n.id)))
+      .map((n) => ({ ...n }));
+    // соседей из других родов подтягиваем к рамке: на луче от центра рода к их настоящему месту
+    const inner = groups.length ? nodes.filter((n) => groups.some((g) => g.id === n.id || inside(n, g)))
+                                : nodes.filter((n) => core.has(n.id));
+    const bx0 = Math.min(...inner.map((n) => n.x)), by0 = Math.min(...inner.map((n) => n.y));
+    const bx1 = Math.max(...inner.map((n) => n.x + n.width)), by1 = Math.max(...inner.map((n) => n.y + n.height));
+    const cx = (bx0 + bx1) / 2, cy = (by0 + by1) / 2, M = 140;
+    const placed = [...inner];
+    const hit = (a) => placed.some((b) => a.x < b.x + b.width + 20 && b.x < a.x + a.width + 20 && a.y < b.y + b.height + 20 && b.y < a.y + a.height + 20 && b.type !== 'group');
+    const outer = nodes.filter((n) => !inner.includes(n))
+      .sort((a, b) => Math.atan2(a.y - cy, a.x - cx) - Math.atan2(b.y - cy, b.x - cx));
+    for (const n of outer) {
+      const dx = n.x + n.width / 2 - cx, dy = n.y + n.height / 2 - cy;
+      const hw = (bx1 - bx0) / 2 + M + n.width / 2, hh = (by1 - by0) / 2 + M + n.height / 2;
+      const t = Math.min(hw / Math.abs(dx || 1e-9), hh / Math.abs(dy || 1e-9), 1);
+      n.x = cx + dx * t - n.width / 2; n.y = cy + dy * t - n.height / 2;
+      const horiz = Math.abs(dx * t) >= hw - 1; // вышли на левую/правую сторону — двигаем по вертикали
+      for (let i = 0; i < 200 && hit(n); i++) horiz ? (n.y += 30) : (n.x += 40);
+      n.color = n.color || undefined; n.ext = true;
+      placed.push(n);
     }
-    el.innerHTML = `<div class="fname">${name.replace(/\.md$/, '')}</div>`;
-    try {
-      const t = await (await fetch(enc(p))).text();
-      el.innerHTML = renderMd(t);
-      el.querySelector('h1')?.classList.add('fname-h');
-      el.dataset.note = p;
-    } catch { el.classList.add('missing'); }
+    return { nodes, edges: edges.filter((e) => keep.has(e.fromNode) && keep.has(e.toNode)) };
   }
 
-  // ---------- Панель заметки ----------
-  async function openNote(path) {
-    const panel = $('#panel');
-    $('#ptitle').textContent = path.split('/').pop().replace(/\.md$/, '');
-    $('#pbody').innerHTML = '…'; panel.hidden = false;
-    try { $('#pbody').innerHTML = renderMd(await (await fetch(enc(path))).text()); $('#pbody').scrollTop = 0; }
-    catch { $('#pbody').textContent = 'Не удалось загрузить'; }
-  }
-  $('#pclose').onclick = () => ($('#panel').hidden = true);
-  document.addEventListener('click', (ev) => {
-    if (moved) { ev.preventDefault(); ev.stopPropagation(); return; }
-    const c = ev.target.closest('[data-canvas]');
-    if (c) { ev.preventDefault(); load(c.dataset.canvas, true); return; }
-    const w = ev.target.closest('.wl[data-note]');
-    if (w) openNote(w.dataset.note);
-  }, true);
-
-  // ---------- Pan / zoom ----------
-  const apply = () => {
-    world.style.transform = `translate(${view.x}px,${view.y}px) scale(${view.k})`;
-    const g = 24 * view.k;
-    vp.style.backgroundSize = `${g}px ${g}px`; vp.style.backgroundPosition = `${view.x}px ${view.y}px`;
-    $('#zoom').textContent = Math.round(view.k * 100) + '%';
-  };
-  function zoomAt(cx, cy, k) {
-    k = Math.min(MAX, Math.max(MIN, k));
-    view.x = cx - (cx - view.x) * (k / view.k); view.y = cy - (cy - view.y) * (k / view.k); view.k = k; apply();
-  }
-  function fit() {
-    if (!bounds) return;
-    const top = $('#bar').offsetHeight, pad = 40;
-    const W = vp.clientWidth - pad * 2, H = vp.clientHeight - top - pad * 2;
-    const bw = bounds.x1 - bounds.x0 + 60, bh = bounds.y1 - bounds.y0 + 60;
-    view.k = Math.min(MAX, Math.max(MIN, Math.min(W / bw, H / bh)));
-    view.x = pad + (W - bw * view.k) / 2 - (bounds.x0 - 30) * view.k;
-    view.y = top + pad + (H - bh * view.k) / 2 - (bounds.y0 - 30) * view.k;
-    apply();
-  }
-  $('#fit').onclick = fit;
-  const center = () => [vp.clientWidth / 2, vp.clientHeight / 2];
-  $('#zin').onclick = () => zoomAt(...center(), view.k * 1.25);
-  $('#zout').onclick = () => zoomAt(...center(), view.k / 1.25);
-
-  vp.addEventListener('wheel', (e) => {
-    e.preventDefault();
-    if (e.shiftKey) { view.x -= e.deltaX || e.deltaY; apply(); return; }
-    const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
-    zoomAt(e.clientX, e.clientY, view.k * Math.exp(-dy * (e.ctrlKey ? 0.01 : 0.0015)));
-  }, { passive: false });
-
-  const ptrs = new Map();
-  let last = null, pinch = null, moved = false, downAt = null;
-  vp.addEventListener('pointerdown', (e) => {
-    if (e.button !== 0 && e.pointerType === 'mouse') return;
-    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (ptrs.size === 1) { last = { x: e.clientX, y: e.clientY }; downAt = { ...last }; moved = false; }
-    if (ptrs.size === 2) {
-      const [p, q] = [...ptrs.values()];
-      pinch = { d: Math.hypot(p.x - q.x, p.y - q.y), k: view.k };
-    }
-  });
-  window.addEventListener('pointermove', (e) => {
-    if (!ptrs.has(e.pointerId)) return;
-    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (!moved && downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 5) {
-      moved = true; vp.classList.add('drag'); try { vp.setPointerCapture(e.pointerId); } catch {}
-    }
-    if (ptrs.size >= 2 && pinch) {
-      const [p, q] = [...ptrs.values()];
-      const mx = (p.x + q.x) / 2, my = (p.y + q.y) / 2;
-      if (last) { view.x += mx - last.x; view.y += my - last.y; }
-      last = { x: mx, y: my };
-      zoomAt(mx, my, pinch.k * Math.hypot(p.x - q.x, p.y - q.y) / pinch.d);
-      moved = true;
-    } else if (moved && last) {
-      view.x += e.clientX - last.x; view.y += e.clientY - last.y; last = { x: e.clientX, y: e.clientY }; apply();
-    }
-  });
-  const up = (e) => {
-    if (!ptrs.delete(e.pointerId)) return;
-    if (ptrs.size < 2) pinch = null;
-    if (ptrs.size === 1) { const [p] = ptrs.values(); last = { ...p }; }
-    if (!ptrs.size) { vp.classList.remove('drag'); last = null; downAt = null; setTimeout(() => (moved = false), 0); }
-  };
-  window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
-  window.addEventListener('resize', apply);
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') $('#panel').hidden = true; });
-
+  // ---------- UI ----------
+  const host = $('#host'), page = $('#page');
+  const main = new CanvasView(host, (k) => ($('#zoom').textContent = Math.round(k * 100) + '%'));
+  let mainPath = null;
+  $('#fit').onclick = () => main.fit();
+  $('#zin').onclick = () => main.zoomBy(1.25);
+  $('#zout').onclick = () => main.zoomBy(1 / 1.25);
+  $('#pick').onchange = (e) => (location.hash = href.canvas(e.target.value));
   $('#theme').onclick = () => {
     const cur = document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
     const t = cur === 'light' ? 'dark' : 'light';
     document.documentElement.dataset.theme = t;
     try { localStorage.setItem('theme', t); } catch {}
   };
+  window.addEventListener('resize', () => main.apply());
 
+  async function showCanvas(path, focus) {
+    page.hidden = true; host.hidden = false; $('#cvctl').hidden = false;
+    $('#pick').value = path; document.title = baseName(path) + ' · Роды';
+    if (mainPath !== path) {
+      mainPath = path; main.clear(); main.setStatus('Загрузка…');
+      let data;
+      try { data = await getJSON(path); } catch (e) { main.setStatus('Не удалось загрузить ' + path); return; }
+      if (mainPath !== path) return;
+      main.render(data);
+      if (!focus) main.fit();
+    }
+    if (focus && !main.focus(focus)) main.fit();
+  }
+
+  async function showNote(path) {
+    host.hidden = true; page.hidden = false; $('#cvctl').hidden = true; $('#pick').selectedIndex = -1;
+    const title = baseName(path); document.title = title + ' · Роды';
+    page.innerHTML = '<div class="article"><p style="color:var(--muted)">Загрузка…</p></div>';
+    page.scrollTop = 0;
+    let raw;
+    try { raw = await getText(path); } catch { page.innerHTML = `<div class="article"><h1>${esc(title)}</h1><p>Заметка не найдена.</p></div>`; return; }
+
+    const isRod = path.startsWith('Рода/');
+    const rodM = /\*\*Род:\*\*\s*\[\[([^\]|#]+)/.exec(raw);
+    const rod = !isRod && rodM ? resolve(rodM[1].trim()) : null;
+    const mainData = await getJSON(MAIN).catch(() => null);
+    const onMain = mainData && mainData.nodes.some((n) => linkOf(n) === path);
+
+    const crumbs = [`<a href="${href.canvas(MAIN)}">${esc(baseName(MAIN))}</a>`];
+    if (isRod) crumbs.push('<span>Рода</span>');
+    if (rod) crumbs.push(`<a href="${href.note(rod)}">${esc(baseName(rod))}</a>`);
+    const actions = [];
+    if (rod) actions.push(`<a class="btn" href="${href.note(rod)}">↩ Род: ${esc(baseName(rod))}</a>`);
+    if (onMain) actions.push(`<a class="btn" href="${href.canvas(MAIN, path)}">◎ Показать на холсте</a>`);
+
+    page.innerHTML = `<div class="article"><nav class="crumbs">${crumbs.join(' › ')} › <span>${esc(title)}</span></nav>
+      <div class="actions">${actions.join('')}</div><article class="md">${renderMd(raw)}</article></div>`;
+    const art = $('article', page);
+    if (!$('h1', art)) art.insertAdjacentHTML('afterbegin', `<h1>${esc(title)}</h1>`);
+
+    if (isRod && mainData) {
+      const sect = (/^## Люди\s*\n([\s\S]*?)(?=^## |\Z)/m.exec(raw) || [, ''])[1];
+      const people = new Set([...sect.matchAll(/\[\[([^\]|#]+)/g)].map((m) => resolve(m[1].trim())).filter(Boolean));
+      const sub = rodSubgraph(mainData, path, people);
+      if (sub) {
+        const sec = document.createElement('section');
+        sec.innerHTML = '<h2>Связи рода</h2><div class="mini"><div class="mini-ctl"><button data-a="in">+</button><button data-a="out">−</button><button data-a="fit">⤢</button></div><div class="mini-cv" style="height:100%"></div></div>';
+        $('h1', art).after(sec);
+        const cv = new CanvasView($('.mini-cv', sec));
+        cv.render(sub); cv.fit();
+        $('.mini-ctl', sec).onclick = (e) => { const a = e.target.dataset.a; a === 'in' ? cv.zoomBy(1.25) : a === 'out' ? cv.zoomBy(0.8) : a === 'fit' && cv.fit(); };
+      }
+    }
+  }
+
+  function route() {
+    const [p, q = ''] = location.hash.slice(1).split('?');
+    const focus = new URLSearchParams(q).get('focus');
+    const m = /^\/(n|c)\/(.+)$/.exec(p);
+    if (m) {
+      const path = decodeURIComponent(m[2]);
+      return m[1] === 'n' ? showNote(path) : showCanvas(path, focus);
+    }
+    showCanvas(MAIN);
+  }
+
+  async function init() {
+    try { manifest = await (await fetch('manifest.json', { cache: 'no-cache' })).json(); } catch {}
+    for (const f of manifest.files) {
+      fileSet.add(f);
+      if (f.endsWith('.md')) { const b = baseName(f); if (!byName.has(b) || byName.get(b).startsWith('_старые/')) byName.set(b, f); }
+    }
+    for (const c of manifest.canvases) $('#pick').add(new Option(baseName(c), c));
+    const legacy = new URLSearchParams(location.search).get('c'); // старые ссылки ?c=
+    if (legacy) history.replaceState(null, '', location.pathname + href.canvas(legacy));
+    window.addEventListener('hashchange', route);
+    route();
+  }
   init();
 })();
