@@ -327,6 +327,9 @@
     return { nodes, edges };
   }
 
+  // «Карта»: только плашки родов на своих местах, без связей — чистое положение по двум осям
+  function mapView(data) { return { nodes: unionsView(data).nodes.filter((n) => n.plaque), edges: [] }; }
+
   // ---------- UI ----------
   const host = $('#host'), page = $('#page');
   const main = new CanvasView(host, (k) => ($('#zoom').textContent = Math.round(k * 100) + '%'));
@@ -347,16 +350,16 @@
     page.hidden = true; host.hidden = false; $('#cvctl').hidden = false;
     $('#pick').value = path; document.title = baseName(path) + ' · Роды';
     const isMain = path === MAIN;
-    mode = isMain && !focus && mode !== 'people' ? 'unions' : 'people'; // посторонний сначала видит рода
+    mode = !isMain || focus ? 'people' : ['map', 'people'].includes(mode) ? mode : 'unions'; // посторонний сначала видит рода
     $('#modes').hidden = !isMain; $('#axes').hidden = !isMain; $('#legend').hidden = !isMain;
     document.querySelectorAll('#modes a').forEach((a) => a.classList.toggle('on', a.dataset.mode === mode));
-    $('#host').dataset.mode = mode;
+    $('#host').dataset.mode = mode; if (mode === 'map') $('#legend').hidden = true;
     if (mainPath !== path + mode) {
       mainPath = path + mode; main.clear(); main.setStatus('Загрузка…');
       let data;
       try { data = await getJSON(path); } catch (e) { main.setStatus('Не удалось загрузить ' + path); return; }
       if (mainPath !== path + mode) return;
-      main.render(mode === 'unions' ? unionsView(data) : data);
+      main.render(mode === 'unions' ? unionsView(data) : mode === 'map' ? mapView(data) : data);
       if (!focus) main.fit();
     }
     if (focus && !main.focus(focus)) main.fit();
@@ -423,7 +426,7 @@
       if (f.endsWith('.md')) { const b = baseName(f); if (!byName.has(b) || byName.get(b).startsWith('_старые/')) byName.set(b, f); }
     }
     for (const c of manifest.canvases) $('#pick').add(new Option(baseName(c), c));
-    $('#modes').innerHTML = `<a data-mode="unions" href="${href.canvas(MAIN)}?mode=unions">Союзы родов</a><a data-mode="people" href="${href.canvas(MAIN)}?mode=people">Люди</a>`;
+    $('#modes').innerHTML = `<a data-mode="map" href="${href.canvas(MAIN)}?mode=map">Карта</a><a data-mode="unions" href="${href.canvas(MAIN)}?mode=unions">Союзы родов</a><a data-mode="people" href="${href.canvas(MAIN)}?mode=people">Люди</a>`;
     $('#legend').innerHTML = '<summary>Легенда</summary>' + ['marriage', 'engagement', 'parent', 'ancestor', 'sibling']
       .map((k) => `<div><i style="background:${col(KIND_COLOR[k])}"></i>${KIND_NAME[k]}</div>`).join('') +
       '<p>В «Союзах»: толщина и число — сколько связей между родами, цвет — главный тип (наведи на линию, чтобы увидеть все).</p>';
