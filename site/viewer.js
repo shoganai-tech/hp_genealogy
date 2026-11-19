@@ -146,7 +146,7 @@
         path.setAttribute('fill', 'none'); path.style.stroke = c; path.setAttribute('stroke-width', e.weight ? String(Math.min(36, 6 + e.weight * 5)) : '2.5');
         if (e.title) { const t = document.createElementNS(NS, 'title'); t.textContent = e.title; path.append(t); path.style.pointerEvents = 'stroke'; }
         path.setAttribute('stroke-linecap', 'round');
-        if (e.dashed) { path.setAttribute('stroke-dasharray', '14 10'); path.classList.add('dashed'); }
+        
         if ((e.toEnd || 'arrow') === 'arrow') path.setAttribute('marker-end', `url(#${marker(c)})`);
         if ((e.fromEnd || 'none') === 'arrow') path.setAttribute('marker-start', `url(#${marker(c)})`);
         this.svg.append(path);
@@ -510,7 +510,7 @@
     };
     $('#legend').innerHTML = '<summary>Легенда</summary>' + ['marriage', 'engagement', 'parent', 'ancestor', 'sibling']
       .map((k) => `<div><i style="background:${col(KIND_COLOR[k])}"></i>${KIND_NAME[k]}</div>`).join('') +
-      '<p>В «Союзах» в рамках оставлены только те, кто вошёл в род из другого рода (девичья фамилия в скобках), и их супруги. Пунктир ведёт к родне в родном роду.</p>';
+      '<p>В «Союзах» в рамках оставлены только те, кто вошёл в род из другого рода (девичья фамилия в скобках), и их супруги. Также показаны их родители и родня в родном роду.</p>';
     const legacy = new URLSearchParams(location.search).get('c'); // старые ссылки ?c=
     if (legacy) history.replaceState(null, '', location.pathname + href.canvas(legacy));
     window.addEventListener('hashchange', route);
